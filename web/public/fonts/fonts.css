@@ -1,0 +1,66 @@
+/* Self-hosted so ECHO looks the same offline and on any machine: Fraunces for
+   display, Karla for text. Files live in public/fonts. */
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/fraunces-italic-latinext.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/fraunces-italic-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-normal-latinext.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-normal-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Karla';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/karla-italic-latinext.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Karla';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/karla-italic-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Karla';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/karla-normal-latinext.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Karla';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/karla-normal-latin.woff2') format('woff2');
+}

@@ -71,3 +71,22 @@ reminder renders with "in 2 days". `npm run build` passes with `strict`,
 2. Ask ECHO that answers in sentences, with citations to the memories it used.
 3. Relationship view: person → memories → promises, on one timeline.
 4. httpOnly cookie auth, then admin console UI.
+
+## The look
+
+ECHO is set like a small private archive rather than a dashboard: warm paper with a
+faint grain, ink for text, one leather accent, and hairline rules instead of floating
+cards. Fraunces (display) and Karla (text) are self-hosted in `public/fonts`, so the
+type is identical on every machine and needs no network at runtime.
+
+A few decisions worth keeping if you extend it:
+
+- Memory rows are an index, not cards: the number sits in the margin, the date sits in
+  its own column, and the selected row is marked with a leather rule on its left edge.
+- The reading sheet on the right is deliberately paper-like: a 2px leather top edge, a
+  dashed rule above the metadata, and a printed running footer.
+- Colours live in one `:root` block at the top of `styles.css`; if you change the
+  accent there, the whole app follows, including the admin console (which swaps to a
+  green marker so you always know you left the vault).
+- Everything is readable at 380px wide: the vault stacks, the sidebar becomes a
+  horizontal strip, and the sign-in page drops its editorial panel.

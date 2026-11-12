@@ -66,11 +66,18 @@ export default function Layout() {
           <button type="button" className="ghost-button" onClick={signOut}>
             Sign out
           </button>
+          <p className="sidebar-note">
+            Everything here is sealed with your own key.
+          </p>
         </div>
       </aside>
 
       <main className="main">
         <Outlet />
+        <footer className="app-foot">
+          <span className="app-foot-mark">ECHO</span>
+          <span>kept by hand, sealed with your own key</span>
+        </footer>
       </main>
     </div>
   );

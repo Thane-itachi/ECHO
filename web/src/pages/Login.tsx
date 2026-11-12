@@ -33,7 +33,7 @@ export default function Login() {
         <h1>
           Never forget
           <br />
-          what matters.
+          <em>what matters.</em>
         </h1>
         <p>
           The laptop John borrowed. The promise you made on Tuesday. The thing your landlord said he would fix.
@@ -44,6 +44,7 @@ export default function Login() {
           <li>Nothing is filed from a conversation without your approval.</li>
           <li>Search only ever touches your own vault.</li>
         </ul>
+        <p className="story-sign">Kept by hand. Yours to read, and no one else&rsquo;s.</p>
       </section>
 
       <section className="auth-panel">
