@@ -87,11 +87,17 @@ it looks identical offline and on every machine):
 - *Newsreader* is what you actually read: memory bodies, answers, proposals, quotes.
 - *Karla* is the machinery: labels, controls, buttons, numbers.
 
-**The mark.** An E whose arms shorten and fade like a sound dying away. It is one SVG
-(`src/components/Logo.tsx`) tinted through `--mark-tile` / `--mark-ink`, so the same
-shape sits on paper, on the ink sidebar, and in the admin console (where the tile turns
-forest green so you always know which surface you are on). The favicon is
-`public/favicon.svg`, same geometry, hard-coded colours.
+**The mark.** A pressed bookplate: a cream E on a leather plate, held by a hairline
+frame, with the faintest gradient so the plate reads as material rather than a colour
+swatch. The letter is drawn, not typeset: arms at 3.3 units on a 48 grid, the middle
+arm a touch short the way a type designer corrects an E optically, and the whole letter
+set slightly above centre. It occupies 47% of the plate, so it still reads at 16px.
+
+One SVG (`src/components/Logo.tsx`) tinted through `--mark-tile-hi` / `--mark-tile-lo`
+/ `--mark-ink`: leather in the vault, forest in the admin console (so you always know
+which surface you are on), cream-on-ink as the sign-in watermark. `public/favicon.svg`
+carries the same geometry with hard-coded colours, since a favicon cannot rely on the
+page's CSS variables.
 
 A few decisions worth keeping if you extend it:
 
