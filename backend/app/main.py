@@ -21,7 +21,7 @@ from app.api import (
     routes_reminders,
 )
 from app.core.config import settings
-from app.core.crypto import build_cipher
+from app.core.crypto import build_cipher, set_process_cipher
 from app.core.errors import register_exception_handlers
 from app.db.session import build_engine, build_session_factory, create_all
 
@@ -48,6 +48,9 @@ def create_app(*, session_factory=None, cipher=None) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = session_factory
     app.state.cipher = cipher or build_cipher()
+    # Column types (sealed admin secrets) cannot see a request, so the process keeps
+    # the cipher too. One process, one data key.
+    set_process_cipher(app.state.cipher)
     app.state.storage_dir = settings.storage_dir
 
     register_exception_handlers(app)

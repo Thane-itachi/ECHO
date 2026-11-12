@@ -38,6 +38,8 @@ class Settings:
     user_token_ttl_seconds: int
     admin_token_ttl_seconds: int
     data_key: str | None
+    #: Keys that may still decrypt but never encrypt: the rotation window.
+    data_key_previous: tuple[str, ...]
     password_iterations: int
     cors_origins: tuple[str, ...]
     sql_echo: bool
@@ -72,6 +74,9 @@ def load_settings() -> Settings:
         user_token_ttl_seconds=_get_int("ECHO_USER_TOKEN_TTL", 60 * 60 * 12),
         admin_token_ttl_seconds=_get_int("ECHO_ADMIN_TOKEN_TTL", 60 * 15),
         data_key=_get("ECHO_DATA_KEY"),
+        data_key_previous=tuple(
+            key.strip() for key in (_get("ECHO_DATA_KEY_PREVIOUS", "") or "").split(",") if key.strip()
+        ),
         password_iterations=_get_int("ECHO_PASSWORD_ITERATIONS", 120_000),
         cors_origins=tuple(
             origin.strip()
@@ -90,6 +95,8 @@ def load_settings() -> Settings:
             problems.append("ECHO_USER_JWT_SECRET and ECHO_ADMIN_JWT_SECRET must be set")
         if settings.user_jwt_secret == settings.admin_jwt_secret:
             problems.append("user and admin signing keys must differ")
+        if settings.data_key and settings.data_key in settings.data_key_previous:
+            problems.append("ECHO_DATA_KEY_PREVIOUS must not repeat the current ECHO_DATA_KEY")
         if not settings.storage_dir:
             problems.append("ECHO_STORAGE_DIR must be set (documents are stored encrypted on disk)")
         if problems:

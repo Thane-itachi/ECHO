@@ -44,40 +44,153 @@ from app.core.config import Settings, settings
 class CipherError(RuntimeError):
     pass
 
+#: Platform secrets (administrator TOTP seeds) live under their own derivation, never
+#: under a user's content key. Changing this prefix invalidates every sealed secret.
+SYSTEM_SECRET_SALT = b"echo/system-secret/v1"
+SYSTEM_SECRET_INFO = b"echo/admin-totp/v1"
+SEALED_SCHEME = "s1"
+
 
 class ContentCipher:
+    """Per-user content encryption, plus a separate context for platform secrets.
+
+    One master key, two independent derivations:
+
+    * user content  -> ``HKDF(master, salt=b"echo/user-content/v1", info=user_id)``
+    * platform secrets -> ``HKDF(master, salt=b"echo/system-secret/v1",
+      info=b"echo/admin-totp/v1")``
+
+    They are deliberately different derivations, so a bug that lets someone read one
+    user's memories cannot be turned into an administrator's second factor.
+
+    **Rotation.** The current key always encrypts; retired keys may only decrypt
+    (`ECHO_DATA_KEY_PREVIOUS`). That is what makes a key change a rolling operation
+    rather than a hard cut-over: deploy with current+previous, run
+    ``python -m app.scripts.rotate_data_key --apply`` to rewrite every row under the
+    current key, then drop the retired key from the environment.
+    """
+
     scheme = "f1"
 
-    def __init__(self, master_key: bytes) -> None:
+    def __init__(self, master_key: bytes, previous_keys: tuple[bytes, ...] = ()) -> None:
         if len(master_key) < 16:
             raise CipherError("master key must be at least 16 bytes")
+        for key in previous_keys:
+            if key and len(key) < 16:
+                raise CipherError("retired master keys must be at least 16 bytes")
         self._master = master_key
+        self._previous = tuple(key for key in previous_keys if key)
 
-    def _fernet(self, user_id: str) -> Fernet:
-        hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=b"echo/user-content/v1", info=user_id.encode())
-        return Fernet(base64.urlsafe_b64encode(hkdf.derive(self._master)))
+    # ------------------------------------------------------------ key material
+    def _fernet(self, salt: bytes, info: bytes, master: bytes | None = None) -> Fernet:
+        hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=salt, info=info)
+        return Fernet(base64.urlsafe_b64encode(hkdf.derive(master or self._master)))
 
+    def _owner_fernet(self, user_id: str, master: bytes | None = None) -> Fernet:
+        return self._fernet(b"echo/user-content/v1", user_id.encode(), master)
+
+    def _system_fernet(self, master: bytes | None = None) -> Fernet:
+        return self._fernet(SYSTEM_SECRET_SALT, SYSTEM_SECRET_INFO, master)
+
+    @property
+    def keys(self) -> tuple[bytes, ...]:
+        """Current key first, then retired ones. Encryption only ever uses the first."""
+        return (self._master, *self._previous)
+
+    # ------------------------------------------------------------------ content
     def encrypt(self, plaintext: str, user_id: str) -> str:
-        token = self._fernet(user_id).encrypt(plaintext.encode()).decode()
+        token = self._owner_fernet(user_id).encrypt(plaintext.encode()).decode()
         return f"{self.scheme}:{token}"
 
     def decrypt(self, value: str, user_id: str) -> str:
         if not value.startswith(f"{self.scheme}:"):
             raise CipherError("ciphertext scheme mismatch")
+        payload = value[len(self.scheme) + 1 :].encode()
+        for master in self.keys:
+            try:
+                return self._owner_fernet(user_id, master).decrypt(payload).decode()
+            except InvalidToken:
+                continue
+        raise CipherError("ciphertext could not be decrypted with any configured key")
+
+    def can_decrypt(self, value: str | None, user_id: str) -> bool:
+        """True when the current key set opens this value. Used to make rotation idempotent."""
+        if not value:
+            return False
         try:
-            return self._fernet(user_id).decrypt(value[len(self.scheme) + 1 :].encode()).decode()
-        except InvalidToken as exc:
-            raise CipherError("ciphertext could not be decrypted for this owner") from exc
+            self.decrypt(value, user_id)
+            return True
+        except CipherError:
+            return False
+
+    def encrypted_with_current_key(self, value: str | None, user_id: str) -> bool:
+        if not value or not value.startswith(f"{self.scheme}:"):
+            return False
+        payload = value[len(self.scheme) + 1 :].encode()
+        try:
+            self._owner_fernet(user_id, self._master).decrypt(payload)
+            return True
+        except InvalidToken:
+            return False
 
     # ---------------------------------------------------------------- documents
     def encrypt_bytes(self, data: bytes, user_id: str) -> bytes:
-        return self._fernet(user_id).encrypt(data)
+        return self._owner_fernet(user_id).encrypt(data)
 
     def decrypt_bytes(self, blob: bytes, user_id: str) -> bytes:
+        for master in self.keys:
+            try:
+                return self._owner_fernet(user_id, master).decrypt(blob)
+            except InvalidToken:
+                continue
+        raise CipherError("document could not be decrypted with any configured key")
+
+    def can_decrypt_bytes(self, blob: bytes, user_id: str) -> bool:
         try:
-            return self._fernet(user_id).decrypt(blob)
-        except InvalidToken as exc:
-            raise CipherError("document could not be decrypted for this owner") from exc
+            self.decrypt_bytes(blob, user_id)
+            return True
+        except CipherError:
+            return False
+
+    def bytes_with_current_key(self, blob: bytes, user_id: str) -> bool:
+        try:
+            self._owner_fernet(user_id, self._master).decrypt(blob)
+            return True
+        except InvalidToken:
+            return False
+
+    # --------------------------------------------------------- platform secrets
+    def seal(self, plaintext: str) -> str:
+        """Seal a platform secret (an administrator's TOTP seed) under the system key."""
+        return f"{SEALED_SCHEME}:{self._system_fernet().encrypt(plaintext.encode()).decode()}"
+
+    def unseal(self, value: str) -> str:
+        if not value.startswith(f"{SEALED_SCHEME}:"):
+            # Written before admin secrets were sealed. Still readable so an upgrade
+            # cannot lock every administrator out; the `sealed_admin_secrets` migration
+            # rewrites these rows with the system key.
+            return value
+        payload = value[len(SEALED_SCHEME) + 1 :].encode()
+        for master in self.keys:
+            try:
+                return self._system_fernet(master).decrypt(payload).decode()
+            except InvalidToken:
+                continue
+        raise CipherError("platform secret could not be unsealed with any configured key")
+
+    @staticmethod
+    def is_sealed(value: str | None) -> bool:
+        return bool(value) and value.startswith(f"{SEALED_SCHEME}:")
+
+    def sealed_with_current_key(self, value: str | None) -> bool:
+        if not self.is_sealed(value):
+            return False
+        payload = value[len(SEALED_SCHEME) + 1 :].encode()
+        try:
+            self._system_fernet(self._master).decrypt(payload)
+            return True
+        except InvalidToken:
+            return False
 
 
 class NullCipher:
@@ -98,6 +211,12 @@ class NullCipher:
             raise CipherError("ciphertext scheme mismatch")
         return value[len(self.scheme) + 1 :]
 
+    def can_decrypt(self, value: str | None, user_id: str) -> bool:
+        return bool(value) and value.startswith(f"{self.scheme}:")
+
+    def encrypted_with_current_key(self, value: str | None, user_id: str) -> bool:
+        return self.can_decrypt(value, user_id)
+
     def encrypt_bytes(self, data: bytes, user_id: str) -> bytes:
         if not self._allow:
             raise CipherError("no data key configured; refusing to store plaintext documents")
@@ -107,6 +226,29 @@ class NullCipher:
         if not blob.startswith(b"p1:"):
             raise CipherError("ciphertext scheme mismatch")
         return blob[3:]
+
+    def can_decrypt_bytes(self, blob: bytes, user_id: str) -> bool:
+        return blob.startswith(b"p1:")
+
+    def bytes_with_current_key(self, blob: bytes, user_id: str) -> bool:
+        return blob.startswith(b"p1:")
+
+    def seal(self, plaintext: str) -> str:
+        if not self._allow:
+            raise CipherError("no data key configured; refusing to store a platform secret")
+        return f"{SEALED_SCHEME}:{plaintext}"
+
+    def unseal(self, value: str) -> str:
+        if not value.startswith(f"{SEALED_SCHEME}:"):
+            return value
+        return value[len(SEALED_SCHEME) + 1 :]
+
+    @staticmethod
+    def is_sealed(value: str | None) -> bool:
+        return bool(value) and value.startswith(f"{SEALED_SCHEME}:")
+
+    def sealed_with_current_key(self, value: str | None) -> bool:
+        return self.is_sealed(value)
 
 
 AnyCipher = ContentCipher | NullCipher
@@ -197,8 +339,18 @@ def build_cipher(config: Settings | None = None) -> AnyCipher:
     """
     cfg = config or settings
     if cfg.data_key:
-        return ContentCipher(base64.urlsafe_b64decode(cfg.data_key))
+        return ContentCipher(
+            base64.urlsafe_b64decode(cfg.data_key),
+            tuple(_decode_key(key) for key in getattr(cfg, "data_key_previous", ()) or ()),
+        )
     return NullCipher(allow=not cfg.is_production)
+
+
+def _decode_key(value: str) -> bytes:
+    try:
+        return base64.urlsafe_b64decode(value)
+    except Exception as exc:  # noqa: BLE001 - surfaced as a config error, not a crash
+        raise CipherError("ECHO_DATA_KEY / ECHO_DATA_KEY_PREVIOUS is not valid base64") from exc
 
 
 def build_blind_index(config: Settings | None = None) -> BlindIndex | None:
@@ -213,6 +365,25 @@ def build_blind_index(config: Settings | None = None) -> BlindIndex | None:
 @lru_cache(maxsize=1)
 def get_default_cipher() -> AnyCipher:
     return build_cipher()
+
+
+_process_cipher: AnyCipher | None = None
+
+
+def set_process_cipher(cipher: AnyCipher | None) -> None:
+    """Record the cipher this process serves with (called by the app factory).
+
+    Routes carry the cipher per request, but a column type cannot see a request, and an
+    administrator's sealed TOTP seed must be readable by any worker that verifies a
+    login. So the factory records it once, and `SealedSecret` reads it here.
+    """
+    global _process_cipher
+    _process_cipher = cipher
+
+
+def process_cipher() -> AnyCipher:
+    """The cipher this process serves with, falling back to the configured default."""
+    return _process_cipher or get_default_cipher()
 
 
 @lru_cache(maxsize=1)

@@ -132,7 +132,7 @@ cd backend && python -m pytest
 ```
 
 ```text
-108 passed
+115 passed
 ```
 
 The suite is weighted towards the failure modes that actually hurt:
@@ -150,9 +150,40 @@ The suite is weighted towards the failure modes that actually hurt:
   admin rotates the secret, and the raw token never reaches the audit trail.
 - `tests/test_import_boundaries.py` — an AST check that fails the build if the admin
   package imports the user data layer.
+- `tests/test_admin_secrets.py` — administrators' TOTP seeds are ciphertext in the raw
+  row, a user's content key cannot open one, and a legacy plaintext row still signs in.
+- `tests/test_key_rotation.py` — a retired key reads but never writes; after rotation a
+  process holding only the new key still finds memories by search, opens documents,
+  decrypts queued captures and signs an administrator in; running rotation without the
+  old key reports what it could not read instead of overwriting it.
 - `tests/test_jobs.py` — one job claimed once, one notification per reminder, unknown
   job kinds fail instead of looping forever.
 - `tests/test_migrations.py` — Alembic `head` must equal `Base.metadata`.
+
+## Rotating the data key
+
+A key you can never change is a key that leaks forever, so rotation is a first-class
+operation. It is a window, not a cut-over, and no row is lost if any step is interrupted:
+
+```bash
+# 1. start everything with both keys: new one encrypts, old one only decrypts
+ECHO_DATA_KEY=<new> ECHO_DATA_KEY_PREVIOUS=<old> scripts/dev.sh
+
+# 2. see what is still on the old key, then rewrite it
+cd backend
+python -m app.scripts.rotate_data_key --check
+python -m app.scripts.rotate_data_key --apply
+
+# 3. drop ECHO_DATA_KEY_PREVIOUS, restart, confirm --check reports zero
+```
+
+`--apply` rewrites memory titles and bodies, person notes, proposals and their source
+sentences, encrypted documents on disk, queued capture payloads, every blind index
+(tokens are keyed, so search breaks silently if they are not rekeyed) and
+administrators' sealed TOTP seeds. It is safe to re-run: each value is decrypted to
+plaintext and re-encrypted under the current key, never encrypted twice. If a value
+cannot be read with the configured keys, the run names the row and stops instead of
+overwriting it.
 
 ## Design decisions worth knowing
 
@@ -169,7 +200,12 @@ The suite is weighted towards the failure modes that actually hurt:
    request and a restart cannot double-send.
 5. **AI output is a proposal.** Extraction can be wrong; the user's approval is an
    audited state transition that keeps the source sentence.
-6. **Dev mode is loud.** Without `ECHO_DATA_KEY`, `NullCipher` stores plaintext and the
+6. **Secrets have their own derivations.** Content uses
+   `HKDF(master, info=user_id)`; administrators' TOTP seeds use
+   `HKDF(master, salt=echo/system-secret/v1)`. Reading one cannot produce the other, so
+   a bug in user content cannot be replayed against an admin's second factor. The seed
+   is sealed by a column type, not by remembering to call a helper.
+7. **Dev mode is loud.** Without `ECHO_DATA_KEY`, `NullCipher` stores plaintext and the
    API says so at startup. In production the same path raises instead of storing.
 
 ## Roadmap
@@ -181,6 +217,8 @@ The suite is weighted towards the failure modes that actually hurt:
 - [x] Capture queue + extraction worker writing proposals
 - [x] Encrypted documents, memory links, memory-approval history
 - [x] Alembic baseline + drift test
+- [x] Sealed admin TOTP seeds, and a rotation path that rekeys content, documents,
+      indexes and seeds
 - [ ] Generative answers (LLM over retrieved memories, citations preserved)
 - [ ] Model-backed extraction as an alternative to the rule-based extractor
 - [ ] Reminder delivery provider behind `drain_outbox.deliver`

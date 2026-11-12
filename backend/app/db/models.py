@@ -27,6 +27,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.core.time import utcnow
+from app.db.types import SealedSecret
 
 MEMORY_CATEGORIES: tuple[str, ...] = (
     "people",
@@ -87,7 +88,10 @@ class AdminUser(Base, Timestamped):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     # NOT NULL on purpose: an admin without an enrolled TOTP secret cannot exist, so
     # there is no "MFA off" state to bypass. See app/admin/permissions.py.
-    mfa_secret: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Stored sealed (SealedSecret), under a system key derivation that is not any
+    # user's content key: a database dump does not hand over an administrator's
+    # second factor.
+    mfa_secret: Mapped[str] = mapped_column(SealedSecret(), nullable=False)
     role: Mapped[str] = mapped_column(String(32), nullable=False, default="support_admin")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
