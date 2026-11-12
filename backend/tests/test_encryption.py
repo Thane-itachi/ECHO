@@ -43,10 +43,14 @@ def test_content_is_ciphertext_in_the_database(encrypted_client, session_factory
         row = session.scalars(select(Memory)).one()
         assert row.content_enc.startswith("f1:")
         assert SECRET_TEXT not in row.content_enc
-        # The documented tradeoff, asserted rather than assumed: search reads a derived
-        # plaintext index, so searching never requires decrypting another user's rows.
-        # Ciphertext is the only copy of the body itself.
-        assert row.search_text == f"Safe code\n{SECRET_TEXT}".lower()
+        # The title is encrypted too: it used to be the one readable copy of a memory.
+        assert row.title_enc.startswith("f1:")
+        assert "Safe code" not in row.title_enc
+        # The search index is keyed tokens only. No word of the memory is stored, so a
+        # database dump cannot be read, and cannot be attacked with a wordlist.
+        assert row.search_index.strip()
+        for word in ("combination", "safe", "code"):
+            assert word not in row.search_index
 
 
 def test_search_still_works_over_encrypted_rows(encrypted_client):

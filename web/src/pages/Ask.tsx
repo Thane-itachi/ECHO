@@ -1,24 +1,28 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
-import { formatDate, listMemories, type Memory } from '../lib/api';
+import { ask, formatDate, type AskAnswer } from '../lib/api';
 import { errorMessage, useAuthFailureHandler } from '../lib/auth';
+
+const SUGGESTIONS = [
+  'Who borrowed my laptop?',
+  'When did the plumber say he would come?',
+  'What did I promise Ngozi?',
+];
 
 export default function Ask() {
   const handleAuthFailure = useAuthFailureHandler();
   const [question, setQuestion] = useState('');
-  const [asked, setAsked] = useState<string | null>(null);
-  const [results, setResults] = useState<Memory[] | null>(null);
+  const [answer, setAnswer] = useState<AskAnswer | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function search(term: string) {
+  async function submit(term: string) {
+    if (!term.trim()) return;
     setBusy(true);
     setError(null);
     try {
-      const page = await listMemories({ q: term, limit: 20, include_archived: true });
-      setResults(page.items);
-      setAsked(term);
+      setAnswer(await ask(term.trim()));
     } catch (caught) {
       if (!handleAuthFailure(caught)) setError(errorMessage(caught));
     } finally {
@@ -33,18 +37,17 @@ export default function Ask() {
           <p className="eyebrow">Ask ECHO</p>
           <h1>Ask about anything you stored</h1>
           <p className="page-sub">
-            Right now this is retrieval, not conversation: ECHO shows the memories that match your words. The
-            assistant that answers in sentences is the next milestone.
+            Answers are quoted from your own memories and cited. ECHO does not invent an answer when your vault has
+            nothing to say.
           </p>
         </div>
       </header>
 
       <form
         className="ask-bar"
-        onSubmit={(event) => {
+        onSubmit={(event: FormEvent) => {
           event.preventDefault();
-          const term = question.trim();
-          if (term) void search(term);
+          void submit(question);
         }}
       >
         <input
@@ -54,57 +57,62 @@ export default function Ask() {
           aria-label="Ask ECHO"
         />
         <button type="submit" className="primary-button" disabled={busy || question.trim().length === 0}>
-          {busy ? 'Looking…' : 'Ask'}
+          {busy ? 'Thinking…' : 'Ask'}
         </button>
       </form>
 
       <div className="suggestions">
-        {['laptop', 'borrowed', 'promised', 'boiler'].map((term) => (
+        {SUGGESTIONS.map((suggestion) => (
           <button
-            key={term}
+            key={suggestion}
             type="button"
-            className="pill"
+            className="chip"
             onClick={() => {
-              setQuestion(term);
-              void search(term);
+              setQuestion(suggestion);
+              void submit(suggestion);
             }}
           >
-            {term}
+            {suggestion}
           </button>
         ))}
       </div>
 
       {error ? <p className="form-error">{error}</p> : null}
 
-      {results ? (
-        <section className="results">
-          <p className="results-head">
-            {results.length === 0
-              ? `Nothing in your vault mentions “${asked}”.`
-              : results.length === 1
-                ? `1 memory mentions “${asked}”.`
-                : `${results.length} memories mention “${asked}”.`}
-          </p>
-          {results.map((memory) => (
-            <article key={memory.id} className="result">
-              <div className="detail-head">
-                <span className="chip">{memory.category}</span>
-                <span className="memory-card-date">{formatDate(memory.created_at)}</span>
-              </div>
-              <h3>{memory.title}</h3>
-              <p>{memory.content}</p>
-            </article>
-          ))}
-          {results.length === 0 ? (
-            <p className="results-hint">
-              <Link to="/vault">Open the vault</Link> to add what you remember.
-            </p>
+      {answer ? (
+        <section className="answer">
+          <div className="answer-head">
+            <span className="chip chip-ai">
+              {answer.mode === 'extractive' ? 'quoted from your vault' : answer.mode}
+            </span>
+            <span className="muted">
+              {answer.matched === 0 ? 'no matching memory' : `${answer.matched} matching memor${answer.matched === 1 ? 'y' : 'ies'}`}
+            </span>
+          </div>
+          <div className="answer-body">
+            {answer.answer.split('\n').map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </div>
+
+          {answer.citations.length > 0 ? (
+            <>
+              <h2 className="section-title">Sources</h2>
+              <ol className="citations">
+                {answer.citations.map((citation) => (
+                  <li key={citation.memory_id}>
+                    <Link to={`/vault?memory=${citation.memory_id}`}>{citation.title}</Link>
+                    <span className="memory-card-date">{formatDate(citation.created_at)}</span>
+                  </li>
+                ))}
+              </ol>
+            </>
           ) : null}
         </section>
       ) : (
-        <div className="empty empty-large">
-          <p className="empty-title">Nothing asked yet</p>
-          <p>Try “who borrowed my laptop”, or a name, or a place.</p>
+        <div className="empty">
+          <p className="empty-title">Ask a question in your own words</p>
+          <p>ECHO searches your vault by meaning of the words you stored, then quotes what it found.</p>
         </div>
       )}
     </div>

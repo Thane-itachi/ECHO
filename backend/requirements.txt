@@ -6,6 +6,9 @@ PyJWT>=2.8
 cryptography>=42.0
 # production database driver
 psycopg[binary]>=3.2
+# migrations (production bootstrap: alembic upgrade head)
+alembic>=1.13
 # test tooling
 pytest>=8.0
 httpx>=0.27
+python-multipart>=0.0.9

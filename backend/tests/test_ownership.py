@@ -19,7 +19,7 @@ def test_repository_requires_owner_scope(session_factory, bad_owner):
 def test_repository_refuses_cross_owner_insert(session_factory):
     with session_factory() as session:
         repo = MemoryRepository(session, "owner-a", cipher=NullCipher())
-        stray = Memory(user_id="owner-b", title="x", content_enc="p1:x", search_text="x")
+        stray = Memory(user_id="owner-b", title_enc="p1:x", content_enc="p1:x", search_index=" x ")
         with pytest.raises(OwnershipViolation):
             repo.add(stray)
 
@@ -27,7 +27,7 @@ def test_repository_refuses_cross_owner_insert(session_factory):
 def test_repository_refuses_cross_owner_delete(session_factory):
     with session_factory() as session:
         repo = MemoryRepository(session, "owner-a", cipher=NullCipher())
-        stray = Memory(user_id="owner-b", title="x", content_enc="p1:x", search_text="x")
+        stray = Memory(user_id="owner-b", title_enc="p1:x", content_enc="p1:x", search_index=" x ")
         with pytest.raises(OwnershipViolation):
             repo.delete(stray)
 

@@ -11,7 +11,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.admin import routes as admin_routes
-from app.api import routes_auth, routes_memories, routes_proposals, routes_reminders
+from app.api import (
+    routes_ask,
+    routes_auth,
+    routes_captures,
+    routes_documents,
+    routes_memories,
+    routes_proposals,
+    routes_reminders,
+)
 from app.core.config import settings
 from app.core.crypto import build_cipher
 from app.core.errors import register_exception_handlers
@@ -40,6 +48,7 @@ def create_app(*, session_factory=None, cipher=None) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = session_factory
     app.state.cipher = cipher or build_cipher()
+    app.state.storage_dir = settings.storage_dir
 
     register_exception_handlers(app)
     app.add_middleware(
@@ -56,6 +65,9 @@ def create_app(*, session_factory=None, cipher=None) -> FastAPI:
         routes_memories.people_router,
         routes_proposals.router,
         routes_reminders.router,
+        routes_ask.router,
+        routes_captures.router,
+        routes_documents.router,
         admin_routes.public_router,
         admin_routes.secure_router,
     ):

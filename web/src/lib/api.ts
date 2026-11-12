@@ -334,3 +334,115 @@ export function toDateTimeLocal(date: Date): string {
     date.getMinutes(),
   )}`;
 }
+
+
+/* --------------------------------------------------------------- ask 🗣 ---- */
+
+export interface Citation {
+  memory_id: string;
+  title: string;
+  created_at: string;
+}
+
+export interface AskAnswer {
+  question: string;
+  answer: string;
+  citations: Citation[];
+  mode: string;
+  matched: number;
+}
+
+/** Ask ECHO: a grounded answer plus the memories it came from. */
+export function ask(question: string): Promise<AskAnswer> {
+  return request<AskAnswer>('/ask', { method: 'POST', body: { question } });
+}
+
+/* ---------------------------------------------------------- captures 📥 ---- */
+
+export interface CaptureQueued {
+  job_id: string;
+  queued: boolean;
+}
+
+/** Paste a note; the worker turns it into proposals. Nothing is filed directly. */
+export function createCapture(text: string): Promise<CaptureQueued> {
+  return request<CaptureQueued>('/captures', { method: 'POST', body: { text } });
+}
+
+/* --------------------------------------------------------- documents 📎 ---- */
+
+export interface Document {
+  id: string;
+  filename: string;
+  size_bytes: number;
+  content_type: string | null;
+  memory_id: string | null;
+  created_at: string;
+}
+
+export function listDocuments(): Promise<Page<Document>> {
+  return request<Page<Document>>('/documents?limit=100');
+}
+
+export async function uploadDocument(file: File, memoryId?: string | null): Promise<Document> {
+  const form = new FormData();
+  form.append('file', file);
+  if (memoryId) form.append('memory_id', memoryId);
+  const token = getToken();
+  const response = await fetch('/api/documents', {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: form,
+  });
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    throw new ApiError(response.status, 'upload_failed', describeError(payload, response.status));
+  }
+  return payload as Document;
+}
+
+export function deleteDocument(id: string): Promise<void> {
+  return request<void>(`/documents/${id}`, { method: 'DELETE' });
+}
+
+/** Fetch the decrypted bytes and hand the browser a temporary object URL. */
+export async function downloadDocument(id: string, filename: string): Promise<void> {
+  const token = getToken();
+  const response = await fetch(`/api/documents/${id}/download`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!response.ok) throw new ApiError(response.status, 'download_failed', 'That file could not be downloaded.');
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ------------------------------------------------------------- links 🔗 ---- */
+
+export interface LinkedMemory {
+  id: string;
+  title: string;
+  kind: string;
+}
+
+export function listLinks(memoryId: string): Promise<{ items: LinkedMemory[] }> {
+  return request<{ items: LinkedMemory[] }>(`/memories/${memoryId}/links`);
+}
+
+export function createLink(memoryId: string, toMemoryId: string, kind = 'related'): Promise<{ items: LinkedMemory[] }> {
+  return request<{ items: LinkedMemory[] }>(`/memories/${memoryId}/links`, {
+    method: 'POST',
+    body: { to_memory_id: toMemoryId, kind },
+  });
+}
+
+export function removeLink(memoryId: string, otherId: string): Promise<{ items: LinkedMemory[] }> {
+  return request<{ items: LinkedMemory[] }>(`/memories/${memoryId}/links/${otherId}`, { method: 'DELETE' });
+}

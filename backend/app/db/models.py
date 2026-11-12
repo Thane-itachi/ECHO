@@ -41,6 +41,8 @@ MEMORY_CATEGORIES: tuple[str, ...] = (
     "general",
 )
 MEMORY_SOURCES: tuple[str, ...] = ("user", "ai_extraction", "import")
+ADMIN_ROLES: tuple[str, ...] = ("founder", "platform_admin", "support_admin")
+DOCUMENT_SCAN_STATUSES: tuple[str, ...] = ("stored", "quarantined")
 PROPOSAL_STATUSES: tuple[str, ...] = ("pending", "approved", "rejected")
 JOB_STATUSES: tuple[str, ...] = ("queued", "running", "done", "failed")
 OUTBOX_STATUSES: tuple[str, ...] = ("pending", "sent", "failed")
@@ -83,9 +85,16 @@ class AdminUser(Base, Timestamped):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    mfa_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    mfa_required: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # NOT NULL on purpose: an admin without an enrolled TOTP secret cannot exist, so
+    # there is no "MFA off" state to bypass. See app/admin/permissions.py.
+    mfa_secret: Mapped[str] = mapped_column(String(64), nullable=False)
+    role: Mapped[str] = mapped_column(String(32), nullable=False, default="support_admin")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(f"role IN {_in_list(ADMIN_ROLES)}", name="ck_admin_users_role"),
+    )
 
 
 class Person(Base, Timestamped):
@@ -95,9 +104,11 @@ class Person(Base, Timestamped):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # The name stays readable: it is a label used for pickers, sorting and reminder
+    # text, not the substance of what a user told ECHO. Notes are encrypted.
     name: Mapped[str] = mapped_column(String(160), nullable=False)
     notes_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
-    search_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    search_index: Mapped[str] = mapped_column(Text, nullable=False, default="")
 
 
 class Memory(Base, Timestamped):
@@ -107,9 +118,10 @@ class Memory(Base, Timestamped):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    title_enc: Mapped[str] = mapped_column(Text, nullable=False)
     content_enc: Mapped[str] = mapped_column(Text, nullable=False)
-    search_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Blind index over title + content: keyed HMAC tokens, never the words themselves.
+    search_index: Mapped[str] = mapped_column(Text, nullable=False, default="")
     category: Mapped[str] = mapped_column(String(32), nullable=False, default="general")
     person_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("people.id", ondelete="SET NULL"), nullable=True
@@ -193,7 +205,7 @@ class MemoryProposal(Base, Timestamped):
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
-    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    title_enc: Mapped[str] = mapped_column(Text, nullable=False)
     content_enc: Mapped[str] = mapped_column(Text, nullable=False)
     source_text_enc: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str] = mapped_column(String(32), nullable=False, default="general")

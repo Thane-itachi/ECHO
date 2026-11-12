@@ -10,6 +10,7 @@ const NAV = [
   { to: '/people', label: 'People', hint: 'Who your memories are about' },
   { to: '/proposals', label: 'Captures', hint: 'Wait for your approval' },
   { to: '/reminders', label: 'Reminders', hint: 'Promises with a date' },
+  { to: '/documents', label: 'Documents', hint: 'Receipts and certificates, encrypted' },
 ];
 
 export default function Layout() {
@@ -59,6 +60,9 @@ export default function Layout() {
             <span className="account-label">Signed in as</span>
             <span className="account-email">{user?.email}</span>
           </div>
+          <a className="ghost-button" href="/admin">
+            Admin console
+          </a>
           <button type="button" className="ghost-button" onClick={signOut}>
             Sign out
           </button>

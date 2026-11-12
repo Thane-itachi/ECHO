@@ -8,6 +8,8 @@ from app.core.crypto import ContentCipher, NullCipher
 from app.db.models import User
 from app.schemas import (
     Category,
+    LinkCreate,
+    LinkList,
     MemoryCreate,
     MemoryList,
     MemoryRead,
@@ -96,6 +98,38 @@ def restore_memory(
     return _service(user, db, cipher).set_archived(memory_id, archived=False)
 
 
+@router.get("/{memory_id}/links", response_model=LinkList)
+def list_links(
+    memory_id: str,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
+) -> LinkList:
+    return _service(user, db, cipher).list_links(memory_id)
+
+
+@router.post("/{memory_id}/links", response_model=LinkList, status_code=201)
+def link_memory(
+    memory_id: str,
+    payload: LinkCreate,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
+) -> LinkList:
+    return _service(user, db, cipher).link(memory_id, payload)
+
+
+@router.delete("/{memory_id}/links/{other_id}", response_model=LinkList)
+def unlink_memory(
+    memory_id: str,
+    other_id: str,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
+) -> LinkList:
+    return _service(user, db, cipher).unlink(memory_id, other_id)
+
+
 @router.delete("/{memory_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_memory(
     memory_id: str,
@@ -116,8 +150,9 @@ def list_people(
     offset: int = Query(default=0, ge=0),
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
 ) -> PersonList:
-    return PersonService(db, user.id).list(limit=limit, offset=offset)
+    return PersonService(db, user.id, cipher=cipher).list(limit=limit, offset=offset)
 
 
 @people_router.post("", response_model=PersonRead, status_code=201)
@@ -125,8 +160,9 @@ def create_person(
     payload: PersonCreate,
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
 ) -> PersonRead:
-    return PersonService(db, user.id).create(payload)
+    return PersonService(db, user.id, cipher=cipher).create(payload)
 
 
 @people_router.delete("/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -134,6 +170,7 @@ def delete_person(
     person_id: str,
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
 ) -> Response:
-    PersonService(db, user.id).delete(person_id)
+    PersonService(db, user.id, cipher=cipher).delete(person_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

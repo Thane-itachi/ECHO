@@ -10,5 +10,29 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <script id="echo-boot-errors">
+    // A module that fails to evaluate leaves an empty page. Report it in the DOM so the
+    // failure is visible instead of looking like a blank screen.
+    (function () {
+      function report(message) {
+        var root = document.getElementById('root');
+        if (!root) return;
+        if (root.querySelector('[data-boot-error]')) return;
+        var box = document.createElement('pre');
+        box.setAttribute('data-boot-error', '');
+        box.style.cssText = 'padding:24px;font:13px/1.5 monospace;white-space:pre-wrap;color:#8a1c1c';
+        box.textContent = 'ECHO failed to start: ' + message;
+        root.appendChild(box);
+      }
+      window.addEventListener('error', function (event) {
+        var target = event.target;
+        if (target && target.tagName === 'SCRIPT') report('could not load ' + target.src);
+        else report(event.message || 'unknown script error');
+      }, true);
+      window.addEventListener('unhandledrejection', function (event) {
+        report('unhandled promise rejection: ' + (event.reason && event.reason.message ? event.reason.message : event.reason));
+      });
+    })();
+  </script>
+</body>
 </html>

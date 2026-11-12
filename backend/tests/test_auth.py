@@ -97,7 +97,7 @@ def test_admin_login_requires_valid_totp(client, make_admin, session_factory):
                 email=email,
                 password_hash=hash_password(password),
                 mfa_secret="JBSWY3DPEHPK3PXP",
-                mfa_required=True,
+                role="founder",
                 is_active=True,
             )
         )

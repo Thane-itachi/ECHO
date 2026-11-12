@@ -39,6 +39,15 @@ def app(session_factory):
     return create_app(session_factory=session_factory)
 
 
+@pytest.fixture(autouse=True)
+def storage_dir(app, tmp_path):
+    """Every test app gets its own encrypted-document directory."""
+    directory = tmp_path / "storage"
+    directory.mkdir(parents=True, exist_ok=True)
+    app.state.storage_dir = str(directory)
+    return directory
+
+
 @pytest.fixture()
 def client(app):
     with TestClient(app) as test_client:
@@ -68,7 +77,12 @@ def make_user(client):
 
 @pytest.fixture()
 def make_admin(client, session_factory):
-    def _make(email: str | None = None, password: str = "admin-password-1", mfa_required: bool = True) -> dict:
+    def _make(
+        email: str | None = None,
+        password: str = "admin-password-1",
+        role: str = "founder",
+        is_active: bool = True,
+    ) -> dict:
         email = (email or f"admin-{uuid.uuid4().hex[:8]}@example.com").lower()
         secret = generate_secret()
         with session_factory() as session:
@@ -76,8 +90,8 @@ def make_admin(client, session_factory):
                 email=email,
                 password_hash=hash_password(password),
                 mfa_secret=secret,
-                mfa_required=mfa_required,
-                is_active=True,
+                role=role,
+                is_active=is_active,
             )
             session.add(admin)
             session.commit()
@@ -92,6 +106,7 @@ def make_admin(client, session_factory):
             "id": admin_id,
             "email": email,
             "secret": secret,
+            "role": role,
             "token": token,
             "headers": {"Authorization": f"Bearer {token}"},
             "password": password,

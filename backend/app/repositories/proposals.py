@@ -17,6 +17,9 @@ class ProposalRepository(OwnedRepository[MemoryProposal]):
         super().__init__(session, owner_id)
         self.cipher = cipher or get_default_cipher()
 
+    def read_title(self, proposal: MemoryProposal) -> str:
+        return self.cipher.decrypt(proposal.title_enc, self.owner_id)
+
     def read_content(self, proposal: MemoryProposal) -> str:
         return self.cipher.decrypt(proposal.content_enc, self.owner_id)
 
@@ -35,7 +38,7 @@ class ProposalRepository(OwnedRepository[MemoryProposal]):
         proposal = MemoryProposal(
             user_id=self.owner_id,
             status="pending",
-            title=title,
+            title_enc=self.cipher.encrypt(title, self.owner_id),
             content_enc=self.cipher.encrypt(content, self.owner_id),
             source_text_enc=self.cipher.encrypt(source_text, self.owner_id),
             category=category,

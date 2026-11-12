@@ -41,10 +41,22 @@ class Settings:
     password_iterations: int
     cors_origins: tuple[str, ...]
     sql_echo: bool
+    storage_dir: str
+    max_upload_bytes: int
 
     @property
     def is_production(self) -> bool:
         return self.env.lower() in {"prod", "production"}
+
+    @property
+    def admin_mfa_required(self) -> bool:
+        """Administrator MFA is not optional, in any environment.
+
+        It used to be a per-row flag that a CLI switch could turn off while the token
+        still carried `mfa=true`. There is no switch now: the only way to obtain an
+        admin token is to pass TOTP verification.
+        """
+        return True
 
     @property
     def is_test(self) -> bool:
@@ -67,6 +79,8 @@ def load_settings() -> Settings:
             if origin.strip()
         ),
         sql_echo=_get_bool("ECHO_SQL_ECHO", False),
+        storage_dir=_get("ECHO_STORAGE_DIR", "./storage") or "./storage",
+        max_upload_bytes=_get_int("ECHO_MAX_UPLOAD_BYTES", 10 * 1024 * 1024),
     )
     if settings.is_production:
         problems = []
@@ -76,6 +90,8 @@ def load_settings() -> Settings:
             problems.append("ECHO_USER_JWT_SECRET and ECHO_ADMIN_JWT_SECRET must be set")
         if settings.user_jwt_secret == settings.admin_jwt_secret:
             problems.append("user and admin signing keys must differ")
+        if not settings.storage_dir:
+            problems.append("ECHO_STORAGE_DIR must be set (documents are stored encrypted on disk)")
         if problems:
             raise RuntimeError("refusing to start: " + "; ".join(problems))
     return settings

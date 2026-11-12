@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import {
   CATEGORIES,
   approveProposal,
+  createCapture,
   formatDate,
   listProposals,
   rejectProposal,
@@ -27,6 +28,10 @@ export default function Proposals() {
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
+  const [note, setNote] = useState('');
+  const [captureNote, setCaptureNote] = useState<string | null>(null);
+  const [queuing, setQueuing] = useState(false);
+
   const [drafting, setDrafting] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -47,6 +52,27 @@ export default function Proposals() {
       alive = false;
     };
   }, [status, reloadToken, handleAuthFailure]);
+
+  async function queueCapture(event: FormEvent) {
+    event.preventDefault();
+    const text = note.trim();
+    if (!text) return;
+    setQueuing(true);
+    setError(null);
+    setCaptureNote(null);
+    try {
+      await createCapture(text);
+      setNote('');
+      setCaptureNote(
+        'Queued. The worker will read it and propose memories for your approval, usually within a few seconds.',
+      );
+      setReloadToken((value) => value + 1);
+    } catch (caught) {
+      if (!handleAuthFailure(caught)) setError(errorMessage(caught));
+    } finally {
+      setQueuing(false);
+    }
+  }
 
   async function decide(proposal: Proposal, action: 'approve' | 'reject') {
     setBusyId(proposal.id);
@@ -100,10 +126,29 @@ export default function Proposals() {
         </button>
       </header>
 
+      <form className="form capture-form" onSubmit={queueCapture}>
+        <label className="field">
+          <span>Paste a note, or what someone told you</span>
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            rows={3}
+            placeholder="John borrowed my laptop yesterday and promised to bring it back tomorrow before 9."
+          />
+        </label>
+        <div className="form-actions">
+          <button type="submit" className="primary-button" disabled={queuing || !note.trim()}>
+            {queuing ? 'Queuing…' : 'Queue for extraction'}
+          </button>
+        </div>
+        {captureNote ? <p className="muted">{captureNote}</p> : null}
+      </form>
+
       {drafting ? (
         <form className="form draft-form" onSubmit={draft}>
           <p className="draft-note">
-            The extraction worker is not wired up yet, so this is the manual version of what it will write into
+            The worker reads what you paste above. This is the manual version, for anything it gets wrong or you
+            would rather type into
             this queue.
           </p>
           <label className="field">

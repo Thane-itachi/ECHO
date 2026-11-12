@@ -963,3 +963,225 @@ textarea {
     animation: none !important;
   }
 }
+
+/* ---------------------------------------------------------------- answer --- */
+.answer {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border-radius: 14px;
+  background: var(--surface, #fff);
+}
+.answer-head {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.answer-body p {
+  margin: 0 0 0.6rem;
+  line-height: 1.6;
+}
+.citations {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.citations li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.citations a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* -------------------------------------------------------------- documents -- */
+.documents {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.document {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+.document-name {
+  display: block;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------- connected --- */
+.related {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+}
+.related-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.related-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ----------------------------------------------------------------- admin --- */
+.admin-shell .main {
+  max-width: 1100px;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.stat-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border-radius: 12px;
+}
+.stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+}
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.stat-hint {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+.admin-section {
+  margin: 2rem 0;
+}
+.health-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  height: 160px;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--line, rgba(0, 0, 0, 0.15));
+  overflow-x: auto;
+}
+.chart-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 22px;
+  height: 100%;
+  gap: 0.3rem;
+}
+.chart-columns {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  width: 100%;
+}
+.chart-bar-fill {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: currentColor;
+  opacity: 0.75;
+}
+.chart-label {
+  font-size: 0.65rem;
+  opacity: 0.6;
+  writing-mode: horizontal-tb;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.92rem;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  vertical-align: top;
+}
+.admin-table th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  opacity: 0.65;
+}
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.detail-cell {
+  max-width: 320px;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+.break-all {
+  overflow-wrap: anywhere;
+}
+.secret-card {
+  margin: 1.25rem 0;
+  padding: 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+}
+.secret-value {
+  display: block;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+  margin: 0.5rem 0;
+  overflow-wrap: anywhere;
+}
+.event-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.event {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+}

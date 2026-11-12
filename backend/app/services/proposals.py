@@ -65,7 +65,7 @@ class ProposalService:
         memory = None
         if status == "approved":
             memory = self.memories.create(
-                title=proposal.title,
+                title=self.proposals.read_title(proposal),
                 content=self.proposals.read_content(proposal),
                 category=proposal.category,
                 source="ai_extraction",

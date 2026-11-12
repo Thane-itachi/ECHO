@@ -1,16 +1,16 @@
 """Serialisation helpers: decrypt at the boundary, never in the router."""
 from __future__ import annotations
 
-from app.db.models import Memory, MemoryProposal, Person, Reminder
-from app.repositories.memories import MemoryRepository
+from app.db.models import Attachment, Memory, MemoryProposal, Person, Reminder
+from app.repositories.memories import MemoryRepository, PersonRepository
 from app.repositories.proposals import ProposalRepository
-from app.schemas import MemoryRead, PersonRead, ProposalRead, ReminderRead
+from app.schemas import DocumentRead, MemoryRead, PersonRead, ProposalRead, ReminderRead
 
 
 def to_memory_read(memory: Memory, repo: MemoryRepository) -> MemoryRead:
     return MemoryRead(
         id=memory.id,
-        title=memory.title,
+        title=repo.read_title(memory),
         content=repo.read_content(memory),
         category=memory.category,
         person_id=memory.person_id,
@@ -22,11 +22,11 @@ def to_memory_read(memory: Memory, repo: MemoryRepository) -> MemoryRead:
     )
 
 
-def to_person_read(person: Person) -> PersonRead:
+def to_person_read(person: Person, repo: PersonRepository | None = None) -> PersonRead:
     return PersonRead(
         id=person.id,
         name=person.name,
-        notes=person.notes_enc,
+        notes=repo.read_notes(person) if repo is not None else None,
         created_at=person.created_at,
     )
 
@@ -35,7 +35,7 @@ def to_proposal_read(proposal: MemoryProposal, repo: ProposalRepository) -> Prop
     return ProposalRead(
         id=proposal.id,
         status=proposal.status,
-        title=proposal.title,
+        title=repo.read_title(proposal),
         content=repo.read_content(proposal),
         source_text=repo.read_source_text(proposal),
         category=proposal.category,
@@ -54,4 +54,15 @@ def to_reminder_read(reminder: Reminder) -> ReminderRead:
         status=reminder.status,
         memory_id=reminder.memory_id,
         created_at=reminder.created_at,
+    )
+
+
+def to_document_read(attachment: Attachment) -> DocumentRead:
+    return DocumentRead(
+        id=attachment.id,
+        filename=attachment.filename,
+        size_bytes=attachment.size_bytes,
+        content_type=attachment.content_type,
+        memory_id=attachment.memory_id,
+        created_at=attachment.created_at,
     )

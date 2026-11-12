@@ -14,6 +14,7 @@ import {
   type Page,
 } from '../lib/api';
 import { errorMessage, useAuthFailureHandler } from '../lib/auth';
+import RelatedMemories from '../components/RelatedMemories';
 
 interface Draft {
   title: string;
@@ -334,6 +335,8 @@ export default function Vault() {
                   <dd>{selected.source === 'ai_extraction' ? 'Captured, then approved' : 'You'}</dd>
                 </div>
               </dl>
+
+              <RelatedMemories memoryId={selected.id} candidates={items} />
 
               <div className="detail-actions">
                 <button type="button" className="primary-button" onClick={() => setEditing(true)} disabled={busy}>

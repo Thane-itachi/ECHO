@@ -247,3 +247,161 @@ class SetUserActiveRequest(StrictModel):
 
 def category_values() -> list[str]:
     return list(MEMORY_CATEGORIES)
+
+
+# ---------------------------------------------------------------------- links
+class LinkCreate(StrictModel):
+    to_memory_id: str = Field(min_length=1, max_length=36)
+    kind: str = Field(default="related", min_length=1, max_length=32)
+
+
+class LinkedMemory(BaseModel):
+    id: str
+    title: str
+    kind: str
+
+
+class LinkList(BaseModel):
+    items: list[LinkedMemory]
+
+
+# ------------------------------------------------------------------ documents
+class DocumentRead(BaseModel):
+    id: str
+    filename: str
+    size_bytes: int
+    content_type: str | None
+    memory_id: str | None
+    created_at: datetime
+
+
+class DocumentList(BaseModel):
+    items: list[DocumentRead]
+    total: int
+    limit: int
+    offset: int
+
+
+# ----------------------------------------------------------------------- ask
+class AskRequest(StrictModel):
+    question: str = Field(min_length=2, max_length=2_000)
+
+
+class Citation(BaseModel):
+    memory_id: str
+    title: str
+    created_at: datetime
+
+
+class AskResponse(BaseModel):
+    question: str
+    answer: str
+    citations: list[Citation]
+    mode: str = "extractive"
+    matched: int
+
+
+# --------------------------------------------------------------------- capture
+class CaptureRequest(StrictModel):
+    text: str = Field(min_length=3, max_length=20_000)
+
+
+class CaptureResponse(BaseModel):
+    job_id: str
+    queued: bool
+
+
+# ---------------------------------------------------------------------- admin
+class AdminRoleUpdate(StrictModel):
+    role: str = Field(min_length=1, max_length=32)
+
+
+class AdminCreateRequest(StrictModel):
+    email: str = Field(min_length=3, max_length=320)
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+    role: str = Field(default="support_admin", min_length=1, max_length=32)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        value = value.strip().lower()
+        if not _EMAIL_RE.match(value):
+            raise ValueError("must be a valid email address")
+        return value
+
+
+class AdminAccountRead(BaseModel):
+    id: str
+    email: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    last_login_at: datetime | None
+
+
+class AdminAccountList(BaseModel):
+    items: list[AdminAccountRead]
+    total: int
+
+
+class AdminAccountCreated(AdminAccountRead):
+    totp_secret: str
+    otpauth_url: str
+
+
+class AdminIdentity(BaseModel):
+    id: str
+    email: str
+    role: str
+    permissions: list[str]
+
+
+class HealthResponse(BaseModel):
+    status: str
+    database: str
+    jobs_queued: int
+    jobs_failed: int
+    outbox_pending: int
+    admins_active: int
+    admins_without_recent_login: int
+
+
+class AnalyticsPoint(BaseModel):
+    day: str
+    users: int
+    memories: int
+    proposals: int
+
+
+class AnalyticsResponse(BaseModel):
+    window_days: int
+    points: list[AnalyticsPoint]
+    proposals_approved: int
+    proposals_rejected: int
+    approval_rate: float | None
+
+
+class SecurityEvent(BaseModel):
+    action: str
+    actor_type: str
+    actor_id: str | None
+    detail: dict
+    created_at: datetime
+
+
+class SecurityResponse(BaseModel):
+    failed_admin_logins_24h: int
+    failed_user_logins_24h: int
+    disabled_admins: int
+    inactive_users: int
+    recent_events: list[SecurityEvent]
+
+
+class EmergencyAccessRequest(StrictModel):
+    reason: str = Field(min_length=5, max_length=500)
+
+
+class EmergencyAccessResponse(BaseModel):
+    access_token: str
+    expires_in: int
+    scope: str

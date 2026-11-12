@@ -11,7 +11,12 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
+from app.core.crypto import CipherError, build_cipher
 from app.db.models import Reminder
+from app.repositories.memories import PersonRepository
+from app.repositories.proposals import ProposalRepository
+from app.repositories.system import AuditRepository
+from app.services.extraction import extract_proposals
 from app.services.jobs import claim_jobs, complete_job, enqueue_outbox, fail_job
 
 logger = logging.getLogger("echo.worker")
@@ -37,8 +42,61 @@ def handle_reminder_notify(session: Session, job) -> None:
     reminder.status = "notified"
 
 
+def handle_memory_extract(session: Session, job) -> None:
+    """Turn a queued capture into pending proposals. Never writes a memory.
+
+    The note arrived encrypted in the payload, so the queue is not a second plaintext
+    copy. Re-running a job is safe: proposals whose source sentence is already pending
+    for this user are skipped instead of duplicated.
+    """
+    user_id = job.payload.get("user_id")
+    text_enc = job.payload.get("text_enc")
+    if not user_id or not text_enc:
+        raise ValueError("extraction job payload is incomplete")
+    cipher = build_cipher()
+    try:
+        text = cipher.decrypt(text_enc, user_id)
+    except CipherError as exc:
+        # Almost always a deployment mistake: the worker process is missing
+        # ECHO_DATA_KEY, so it derives a different (or no) key than the API that
+        # encrypted the note. Say so instead of a bare "scheme mismatch".
+        raise ValueError(
+            "cannot decrypt capture: the worker and the API must run with the same ECHO_DATA_KEY"
+        ) from exc
+
+    people = PersonRepository(session, user_id, cipher=cipher)
+    known_people = tuple(person.name for person in people.search(limit=200)[0])
+
+    proposals = extract_proposals(text, known_people=known_people)
+    repo = ProposalRepository(session, user_id, cipher=cipher)
+    pending = repo.list_by_status(status="pending", limit=200)[0]
+    already = {repo.read_source_text(proposal) for proposal in pending}
+
+    created = 0
+    for extracted in proposals:
+        if extracted.source_text in already:
+            continue
+        repo.create(
+            title=extracted.title,
+            content=extracted.content,
+            source_text=extracted.source_text,
+            category=extracted.category,
+            confidence=extracted.confidence,
+        )
+        created += 1
+
+    AuditRepository(session).record(
+        action="capture.extracted",
+        actor_id=user_id,
+        actor_type="system",
+        target_type="proposal",
+        detail={"proposed": created, "candidates": len(proposals)},
+    )
+
+
 HANDLERS: dict[str, Handler] = {
     "reminder.notify": handle_reminder_notify,
+    "memory.extract": handle_memory_extract,
 }
 
 

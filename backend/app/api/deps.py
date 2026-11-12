@@ -11,6 +11,7 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.crypto import ContentCipher, NullCipher
 from app.core.errors import Unauthorized
 from app.core.security import USER_AUDIENCE, TokenError, decode_access_token
@@ -30,6 +31,11 @@ def get_db(request: Request) -> Iterator[Session]:
 
 def get_cipher(request: Request) -> ContentCipher | NullCipher:
     return request.app.state.cipher
+
+
+def get_storage_dir(request: Request) -> str:
+    """Where encrypted documents live. Overridable per app instance (tests)."""
+    return getattr(request.app.state, "storage_dir", settings.storage_dir)
 
 
 def _token(credentials: HTTPAuthorizationCredentials | None) -> str:
