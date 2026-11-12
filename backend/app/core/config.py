@@ -22,6 +22,13 @@ def _get_int(name: str, default: int) -> int:
     return int(raw)
 
 
+def _get_float(name: str, default: float) -> float:
+    raw = _get(name)
+    if raw is None:
+        return default
+    return float(raw)
+
+
 def _get_bool(name: str, default: bool = False) -> bool:
     raw = _get(name)
     if raw is None:
@@ -45,6 +52,14 @@ class Settings:
     sql_echo: bool
     storage_dir: str
     max_upload_bytes: int
+    #: Optional model provider. `None` means "answer extractive, extract with rules",
+    #: which is a supported configuration, not a degraded one.
+    llm_provider: str | None
+    openai_api_key: str | None
+    openai_base_url: str
+    llm_model: str
+    llm_timeout_seconds: float
+    llm_extraction: bool
 
     @property
     def is_production(self) -> bool:
@@ -59,6 +74,17 @@ class Settings:
         admin token is to pass TOTP verification.
         """
         return True
+
+    @property
+    def llm_enabled(self) -> bool:
+        """True only when a provider is named *and* it has a key.
+
+        A key with no provider named is taken to mean OpenAI (pasting a key is the
+        intent), and naming any other provider is refused at startup rather than
+        silently falling back. Either way the startup log says which path is live, so
+        "did the model actually turn on?" is answerable without guessing.
+        """
+        return self.llm_provider == "openai" and bool(self.openai_api_key)
 
     @property
     def is_test(self) -> bool:
@@ -86,6 +112,13 @@ def load_settings() -> Settings:
         sql_echo=_get_bool("ECHO_SQL_ECHO", False),
         storage_dir=_get("ECHO_STORAGE_DIR", "./storage") or "./storage",
         max_upload_bytes=_get_int("ECHO_MAX_UPLOAD_BYTES", 10 * 1024 * 1024),
+        llm_provider=(_get("ECHO_LLM_PROVIDER") or ("openai" if _get("ECHO_OPENAI_API_KEY") else None)),
+        openai_api_key=_get("ECHO_OPENAI_API_KEY"),
+        # Point this at http://localhost:11434/v1 for a local Ollama: same wire protocol.
+        openai_base_url=_get("ECHO_OPENAI_BASE_URL", "https://api.openai.com/v1") or "",
+        llm_model=_get("ECHO_LLM_MODEL", "gpt-4o-mini") or "",
+        llm_timeout_seconds=_get_float("ECHO_LLM_TIMEOUT", 20.0),
+        llm_extraction=_get_bool("ECHO_LLM_EXTRACTION", True),
     )
     if settings.is_production:
         problems = []
@@ -95,6 +128,10 @@ def load_settings() -> Settings:
             problems.append("ECHO_USER_JWT_SECRET and ECHO_ADMIN_JWT_SECRET must be set")
         if settings.user_jwt_secret == settings.admin_jwt_secret:
             problems.append("user and admin signing keys must differ")
+        if settings.llm_provider and settings.llm_provider != "openai":
+            problems.append("ECHO_LLM_PROVIDER must be 'openai' (openai-compatible servers go via ECHO_OPENAI_BASE_URL)")
+        if settings.llm_provider and not settings.openai_api_key:
+            problems.append("ECHO_OPENAI_API_KEY is required when ECHO_LLM_PROVIDER is set")
         if settings.data_key and settings.data_key in settings.data_key_previous:
             problems.append("ECHO_DATA_KEY_PREVIOUS must not repeat the current ECHO_DATA_KEY")
         if not settings.storage_dir:

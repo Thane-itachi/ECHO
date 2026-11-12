@@ -14,10 +14,12 @@ swapped for an LLM call without touching the queue.
 """
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
 
 from app.schemas import Category, ProposalCreate
+from app.services.llm import LLMError
 
 # Word lists are plain data: adding a category cue is a one-line change, and the
 # scoring loop below never needs editing.
@@ -183,3 +185,112 @@ def extract_reminder_hint(text: str) -> str | None:
     """The date phrase a reminder could be built from, if the note has one."""
     match = DATE_RE.search(text)
     return match.group(0) if match else None
+
+
+# ------------------------------------------------------------------ model path
+# The rule-based extractor above is the floor, not the ceiling. When a provider is
+# configured the worker asks a model instead, under one non-negotiable guard: every
+# proposal must carry a `source_text` copied from the note. A model that invents a fact
+# therefore produces nothing this code will store, and the queue stays a list of things
+# the user can actually check against what they typed.
+
+MODEL_EXTRACTION_SYSTEM = """You turn one person's pasted note into at most six memory proposals.
+
+Reply with JSON only, exactly shaped like:
+{"proposals": [{"title": "...", "content": "...", "source_text": "...", "category": "promises", "confidence": 0.8}]}
+
+Rules:
+1. source_text must be copied word for word from the note. A proposal whose source_text
+   does not appear in the note is discarded, so copying is not optional.
+2. title: under 90 characters, states the fact plainly. content: the sentence or two
+   that carries it, keeping the note's own wording wherever possible.
+3. category must be one of: people, belongings, work, clients, documents, promises,
+   maintenance, plans, events, general.
+4. confidence is between 0 and 1: how sure you are that the note states something worth
+   remembering. Greetings, filler and speculation belong nowhere.
+5. Skip anything with no lasting value. An empty list is a valid answer.
+6. Never write a fact that the note does not state, even if it seems obvious."""
+
+MAX_MODEL_PROPOSALS = 6
+
+
+def _normalise_for_grounding(value: str) -> str:
+    """Case- and whitespace-insensitive form, for the "is this really in the note" test."""
+    return re.sub(r"\s+", " ", (value or "")).strip().lower()
+
+
+def _coerce_category(value: object) -> str:
+    try:
+        return Category(str(value or "").strip().lower()).value
+    except ValueError:
+        return Category.general.value
+
+
+def _coerce_confidence(value: object) -> float:
+    try:
+        number = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0.6
+    return max(0.0, min(1.0, number))
+
+
+def extract_proposals_with_model(
+    text: str,
+    *,
+    known_people: tuple[str, ...] = (),
+    llm,
+    max_items: int = MAX_MODEL_PROPOSALS,
+) -> list[Extracted] | None:
+    """Proposals from a model, or `None` when the caller should use the rules.
+
+    `None` means "no usable answer": no provider, a provider error, unparseable JSON, or
+    nothing that survived the grounding check. Callers fall back to the deterministic
+    extractor, so a model outage or an overly cautious answer never silently swallows a
+    note the user took the trouble to write.
+    """
+    if not text.strip():
+        return None
+    try:
+        raw = llm.complete(
+            system=MODEL_EXTRACTION_SYSTEM,
+            user=text,
+            json_mode=True,
+            max_tokens=900,
+        )
+    except LLMError:
+        return None
+
+    try:
+        payload = json.loads(raw)
+    except ValueError:
+        return None
+    items = payload.get("proposals") if isinstance(payload, dict) else payload
+    if not isinstance(items, list):
+        return None
+
+    note = _normalise_for_grounding(text)
+    proposals: list[Extracted] = []
+    seen: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        source = str(item.get("source_text") or "").strip()
+        key = _normalise_for_grounding(source)
+        # The guard that makes a model safe here: without a sentence that is really in
+        # the note, there is nothing for the user to approve.
+        if not key or key not in note or key in seen:
+            continue
+        seen.add(key)
+        person = _guess_person(source, known_people)
+        proposals.append(
+            Extracted(
+                title=_title_for(source, person=person, is_promise=bool(PROMISE_RE.search(source))),
+                content=str(item.get("content") or source).strip() or source,
+                source_text=source,
+                category=_coerce_category(item.get("category")),
+                confidence=_coerce_confidence(item.get("confidence")),
+            )
+        )
+        if len(proposals) >= max_items:
+            break
+    return proposals or None

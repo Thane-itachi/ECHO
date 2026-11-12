@@ -83,7 +83,7 @@ export default function Ask() {
         <section className="answer">
           <div className="answer-head">
             <span className="chip chip-ai">
-              {answer.mode === 'extractive' ? 'quoted from your vault' : answer.mode}
+              {answer.mode === 'extractive' ? 'quoted from your vault' : 'written from your notes'}
             </span>
             <span className="muted">
               {answer.matched === 0 ? 'no matching memory' : `${answer.matched} matching memor${answer.matched === 1 ? 'y' : 'ies'}`}

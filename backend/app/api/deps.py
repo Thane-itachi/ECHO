@@ -33,6 +33,11 @@ def get_cipher(request: Request) -> ContentCipher | NullCipher:
     return request.app.state.cipher
 
 
+def get_llm(request: Request):
+    """The configured model provider, or None. Routes never construct one themselves."""
+    return getattr(request.app.state, "llm", None)
+
+
 def get_storage_dir(request: Request) -> str:
     """Where encrypted documents live. Overridable per app instance (tests)."""
     return getattr(request.app.state, "storage_dir", settings.storage_dir)

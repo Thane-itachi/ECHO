@@ -11,12 +11,14 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.crypto import CipherError, build_cipher
 from app.db.models import Reminder
 from app.repositories.memories import PersonRepository
 from app.repositories.proposals import ProposalRepository
 from app.repositories.system import AuditRepository
-from app.services.extraction import extract_proposals
+from app.services.extraction import extract_proposals, extract_proposals_with_model
+from app.services.llm import build_llm
 from app.services.jobs import claim_jobs, complete_job, enqueue_outbox, fail_job
 
 logger = logging.getLogger("echo.worker")
@@ -67,7 +69,20 @@ def handle_memory_extract(session: Session, job) -> None:
     people = PersonRepository(session, user_id, cipher=cipher)
     known_people = tuple(person.name for person in people.search(limit=200)[0])
 
-    proposals = extract_proposals(text, known_people=known_people)
+    # Model first when one is configured, rules otherwise (or when the model gives
+    # nothing usable). Either way the output is proposals the user approves, never
+    # memories: a wrong extraction costs one click.
+    extractor = "rules"
+    proposals: list | None = None
+    if settings.llm_extraction:
+        llm = build_llm()
+        if llm is not None:
+            proposals = extract_proposals_with_model(text, known_people=known_people, llm=llm)
+            extractor = "model"
+    if proposals is None:
+        proposals = extract_proposals(text, known_people=known_people)
+        extractor = "rules"
+
     repo = ProposalRepository(session, user_id, cipher=cipher)
     pending = repo.list_by_status(status="pending", limit=200)[0]
     already = {repo.read_source_text(proposal) for proposal in pending}
@@ -90,7 +105,7 @@ def handle_memory_extract(session: Session, job) -> None:
         actor_id=user_id,
         actor_type="system",
         target_type="proposal",
-        detail={"proposed": created, "candidates": len(proposals)},
+        detail={"proposed": created, "candidates": len(proposals), "extractor": extractor},
     )
 
 

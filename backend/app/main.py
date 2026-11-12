@@ -22,6 +22,7 @@ from app.api import (
 )
 from app.core.config import settings
 from app.core.crypto import build_cipher, set_process_cipher
+from app.services.llm import build_llm, describe as describe_llm
 from app.core.errors import register_exception_handlers
 from app.db.session import build_engine, build_session_factory, create_all
 
@@ -29,7 +30,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("echo")
 
 
-def create_app(*, session_factory=None, cipher=None) -> FastAPI:
+def create_app(*, session_factory=None, cipher=None, llm=None) -> FastAPI:
     app = FastAPI(
         title="ECHO API",
         version="0.1.0",
@@ -52,6 +53,9 @@ def create_app(*, session_factory=None, cipher=None) -> FastAPI:
     # the cipher too. One process, one data key.
     set_process_cipher(app.state.cipher)
     app.state.storage_dir = settings.storage_dir
+    # Optional model provider. `None` is a supported configuration: extractive
+    # answers and rule-based extraction, with no network call anywhere in the path.
+    app.state.llm = llm or build_llm()
 
     register_exception_handlers(app)
     app.add_middleware(
@@ -81,6 +85,7 @@ def create_app(*, session_factory=None, cipher=None) -> FastAPI:
         return {"status": "ok", "env": settings.env}
 
     logger.info("ECHO api ready (env=%s)", settings.env)
+    logger.info("%s", describe_llm())
     return app
 
 

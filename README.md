@@ -23,8 +23,8 @@ under [What is not done](#what-is-not-done).
 | Content encryption | Titles **and** bodies are encrypted at rest with a per-user key (HKDF from the master key). Nothing readable is stored for a memory. |
 | Private search | Search runs on a keyed blind index (HMAC word tokens plus 3- and 4-character prefixes). Word and prefix matching work; no plaintext word list exists to steal. |
 | People | Add and remove the people your memories are about. Notes are encrypted too. |
-| Captures | A pasted note goes into a durable queue; the extraction worker turns it into **proposals** (`pending → approved/rejected`). Approval is an audited state transition that creates exactly one memory. |
-| Ask ECHO | Answers with citations: the response quotes your stored memories, marks them `[1]`, `[2]`, and lists the sources. Says plainly when nothing matches instead of inventing an answer. |
+| Captures | A pasted note goes into a durable queue; the extraction worker turns it into **proposals** (`pending → approved/rejected`). Rule-based by default, model-backed when a provider is configured, and in both cases a proposal is discarded unless its source sentence is word-for-word in your note. Approval is an audited state transition that creates exactly one memory. |
+| Ask ECHO | Answers with citations. With no model configured it quotes your stored memories, marks them `[1]`, `[2]`, and lists the sources. With OpenAI configured the model writes the sentence over those same notes, and an answer that cites nothing is discarded in favour of the quotation. `mode` says which one answered. |
 | Reminders | Durable `jobs` + outbox queue with `SKIP LOCKED` and one idempotency key per occurrence, so a restart never double-sends. |
 | Documents | Encrypted attachments: the bytes are encrypted before they reach the disk, filenames are generated server-side, size-capped, owner-scoped, optionally attached to a memory. |
 | Links | Memory-to-memory connections, owner-checked on both ends, idempotent, self-links refused. |
@@ -36,12 +36,12 @@ under [What is not done](#what-is-not-done).
 
 Stated plainly, because a roadmap that hides this is a sales document:
 
-- **Ask ECHO is extractive, not generative.** It retrieves and quotes your memories.
-  There is no LLM call in the request path (no provider, no key, no cost). The
-  response shape already carries `mode`, so adding `generated` is additive.
-- **Extraction is rule-based.** `app/services/extraction.py` scores sentences with
-  word cues, promise/date patterns and sentence splitting. It is deterministic,
-  testable and free; it is not an LLM reader. Same swap point: it is a pure function.
+- **The model provider is optional, and off unless you configure it.** With no key,
+  nothing in ECHO makes a network call: answers quote your memories, extraction uses
+  rules. With `ECHO_OPENAI_API_KEY` set, both can use a model (see
+  [Optional model provider](#optional-model-provider-openai)). What is not done is
+  multi-provider support: only the OpenAI wire protocol is implemented, which covers
+  OpenAI, Azure-style gateways, vLLM, LM Studio and Ollama.
 - **Reminder delivery stops at the outbox.** `app/scripts/drain_outbox.py` logs what
   would be sent. Wiring an email or push provider is one function (`deliver`).
 - **Search is blind-index based**, so it supports terms and prefixes, not fuzzy
@@ -184,6 +184,47 @@ administrators' sealed TOTP seeds. It is safe to re-run: each value is decrypted
 plaintext and re-encrypted under the current key, never encrypted twice. If a value
 cannot be read with the configured keys, the run names the row and stops instead of
 overwriting it.
+
+## Optional model provider (OpenAI)
+
+ECHO answers and extracts without any model. A provider is an upgrade, never a
+dependency: if the key is missing, the request never waits on a network call, and if
+the provider fails the deterministic path answers instead. Nothing here needs a
+provider to run the tests.
+
+```bash
+cd backend
+# .env
+ECHO_LLM_PROVIDER=openai
+ECHO_OPENAI_API_KEY=sk-...            # never committed; .env is git-ignored
+ECHO_LLM_MODEL=gpt-4o-mini            # default
+ECHO_LLM_EXTRACTION=true              # model-backed captures; false keeps rules only
+# ECHO_OPENAI_BASE_URL=http://localhost:11434/v1   # local Ollama, same protocol
+```
+
+Restart the API (for answers) and the worker (for extraction). The startup log prints
+which path is live, without the key:
+`model provider: openai/gpt-4o-mini at https://api.openai.com/v1`.
+
+**What is guaranteed, in code rather than in a prompt:**
+
+- Every generated answer must carry `[n]` markers that resolve to notes retrieved for
+  *that question*. Markers pointing at a note that was not retrieved are deleted. An
+  answer left with no usable citation is thrown away, and the extractive answer is
+  returned with `mode: "extractive"`.
+- Every model-extracted proposal must carry a `source_text` that appears word-for-word
+  in the note (case and whitespace ignored). A proposal that fails this is not queued,
+  so a model cannot put a fact into your approval list that you never wrote.
+- Citations are assigned by retrieval, never by the model: the `citations` array is
+  built from memory rows, and the markers are renumbered to index it.
+- A provider error, timeout or unparseable reply is a fallback, not a 500.
+
+**What it costs you, stated plainly:** with the provider enabled, the text of the
+memories retrieved for a question, and the text of a captured note, are sent to OpenAI
+(or whatever `ECHO_OPENAI_BASE_URL` points at). That is a deliberate, per-deployment
+decision: leave the key unset and no content ever leaves the machine. Requests are
+bounded (20s timeout, ~400 output tokens for an answer, ~900 for extraction) so a
+stuck provider costs a request a second, not a hung worker.
 
 ## Design decisions worth knowing
 
