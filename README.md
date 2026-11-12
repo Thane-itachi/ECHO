@@ -8,7 +8,7 @@ plain language. It is a **web app**: a FastAPI backend and a React/TypeScript
 frontend, plus an admin console with its own authentication.
 
 Status: the features in `docs/`-level scope are implemented, encrypted, tested and
-running. `95` backend tests pass. What remains is genuinely generative intelligence
+running. `108` backend tests pass. What remains is genuinely generative intelligence
 (an LLM over retrieved memories) and a few production polish items, listed honestly
 under [What is not done](#what-is-not-done).
 
@@ -29,7 +29,7 @@ under [What is not done](#what-is-not-done).
 | Documents | Encrypted attachments: the bytes are encrypted before they reach the disk, filenames are generated server-side, size-capped, owner-scoped, optionally attached to a memory. |
 | Links | Memory-to-memory connections, owner-checked on both ends, idempotent, self-links refused. |
 | Isolation | Every private row carries a `NOT NULL user_id`, and `OwnedRepository` cannot be constructed without an owner scope, so a cross-user read is a 404, not an IDOR. |
-| Admin console | Founder / platform_admin / support_admin roles over a reviewable permission matrix, TOTP **required** for every administrator, last-founder protection, MFA rotation, audited failed logins, founder-only break-glass access that records its reason. React screens for overview, users, administrators, audit log and security. |
+| Admin console | Founder / platform_admin / support_admin roles over a reviewable permission matrix, TOTP **required** for every administrator, last-founder protection, MFA rotation, audited failed logins, founder-only break-glass access that records its reason. Administrators are created through single-use enrolment links, so the password and authenticator secret are chosen by the account holder. React screens for overview, users, administrators, audit log and security. |
 | Migrations | Alembic baseline with a test that fails if `models.py` and the migrations ever drift. |
 
 ## What is not done
@@ -64,7 +64,7 @@ backend/            FastAPI + SQLAlchemy 2.0 API
     worker.py       durable job runner (reminder.notify, memory.extract)
   migrations/       Alembic baseline
   scripts/          seed-demo.py
-  tests/            95 tests
+  tests/            108 tests
 web/                React 18 + TypeScript + Vite
   src/pages/        Vault, Ask ECHO, People, Captures, Reminders, Documents, Login
   src/admin/        console: login, overview, users, administrators, audit, security
@@ -103,15 +103,27 @@ Or run everything at once:
 ./scripts/stop.sh
 ```
 
-Demo data and an administrator:
+Demo data, then an administrator who chooses their own credentials:
 
 ```bash
 cd backend
-python scripts/seed-demo.py                                     # demo@echo.local / echo-demo-2026
-python -m app.scripts.create_admin --email you@example.com      # prints the TOTP secret once
+python scripts/seed-demo.py                                          # demo@echo.local / echo-demo-2026
+python -m app.scripts.create_admin --email you@example.com --invite   # prints a one-time link
 ```
 
-Then open `http://127.0.0.1:5173` (vault) and `http://127.0.0.1:5173/admin` (console).
+Open the link at `/admin/enrol?token=…`, set your own password, scan the QR with an
+authenticator app, type the six digits back, and the link burns. Nobody — including
+whoever ran that command — ever sees the password or the TOTP secret. Then open
+`http://127.0.0.1:5173` (vault) and `http://127.0.0.1:5173/admin` (console).
+
+`--invite` is the normal way to create an administrator, and also the way to recover
+one: issuing a link for an existing address replaces both its password and its
+authenticator secret, so a locked-out admin needs a colleague with `ADMINS_WRITE`
+rather than a support ticket. Links live 72 hours (`--expires-hours`), work once, and
+are stored only as a SHA-256 digest; re-issuing retires the previous one.
+`--revoke-invites` cancels the open ones. The older `--email … --password …` form still
+exists for non-interactive setup, and `--rotate` re-seeds a secret from the shell when
+the only founder is locked out.
 
 ## Tests
 
@@ -120,7 +132,7 @@ cd backend && python -m pytest
 ```
 
 ```text
-95 passed
+108 passed
 ```
 
 The suite is weighted towards the failure modes that actually hurt:
@@ -133,6 +145,9 @@ The suite is weighted towards the failure modes that actually hurt:
   no plaintext in the raw row.
 - `tests/test_admin_roles.py` — the permission matrix, last-founder protection, and
   that no admin token is minted without a verified TOTP code.
+- `tests/test_admin_enrol.py` — enrolment links: single use, expiry, re-issue retires
+  the old link, no session before the TOTP code is proven, resetting a locked-out
+  admin rotates the secret, and the raw token never reaches the audit trail.
 - `tests/test_import_boundaries.py` — an AST check that fails the build if the admin
   package imports the user data layer.
 - `tests/test_jobs.py` — one job claimed once, one notification per reminder, unknown

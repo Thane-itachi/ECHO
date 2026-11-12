@@ -14,6 +14,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
+from app.admin import enrolment
 from app.admin import service as admin_service
 from app.admin.deps import get_db, require_admin
 from app.admin.permissions import (
@@ -37,6 +38,13 @@ from app.db.models import AdminUser
 from app.repositories.system import AdminRepository, AuditRepository
 from app.schemas import (
     AdminAccountCreated,
+    AdminEnrolmentConfirmed,
+    AdminEnrolmentConfirmRequest,
+    AdminEnrolmentGranted,
+    AdminEnrolmentInfo,
+    AdminEnrolmentRequest,
+    AdminInviteIssued,
+    AdminInviteRequest,
     AdminAccountList,
     AdminAccountRead,
     AdminCreateRequest,
@@ -102,6 +110,48 @@ def admin_login(payload: AdminLoginRequest, db: Session = Depends(get_db)) -> To
     db.commit()
     token = create_access_token(admin.id, audience=ADMIN_AUDIENCE, mfa=True)
     return TokenResponse(access_token=token, expires_in=settings.admin_token_ttl_seconds)
+
+
+# ------------------------------------------------------------- enrolment links
+# These three are the only unauthenticated write endpoints in the console, and the
+# token *is* the credential: 32 random bytes, single use, time-boxed, stored hashed.
+# They exist so an administrator sets their own password and enrols their own
+# authenticator; nobody, including whoever issued the link, ever sees either secret.
+@public_router.get("/enrol/{token}", response_model=AdminEnrolmentInfo)
+def enrolment_info(token: str, db: Session = Depends(get_db)) -> AdminEnrolmentInfo:
+    invite = enrolment.resolve_invite(db, token)
+    return AdminEnrolmentInfo(
+        email=invite.email,
+        role=invite.role,
+        expires_at=invite.expires_at,
+        account_exists=AdminRepository(db).by_email(invite.email) is not None,
+    )
+
+
+@public_router.post("/enrol/{token}", response_model=AdminEnrolmentGranted)
+def enrolment_start(
+    token: str, payload: AdminEnrolmentRequest, db: Session = Depends(get_db)
+) -> AdminEnrolmentGranted:
+    """Set the account's own password and hand back a fresh TOTP secret, once."""
+    account, secret, url, _invite = enrolment.enrol(
+        db, token=token, password=payload.password
+    )
+    return AdminEnrolmentGranted(
+        email=account.email,
+        role=account.role,
+        totp_secret=secret,
+        otpauth_url=url,
+        qr_data_uri=enrolment.qr_data_uri(url),
+    )
+
+
+@public_router.post("/enrol/{token}/confirm", response_model=AdminEnrolmentConfirmed)
+def enrolment_confirm(
+    token: str, payload: AdminEnrolmentConfirmRequest, db: Session = Depends(get_db)
+) -> AdminEnrolmentConfirmed:
+    """Prove the secret was captured. This is what burns the link."""
+    account = enrolment.confirm_enrolment(db, token=token, code=payload.totp_code)
+    return AdminEnrolmentConfirmed(email=account.email, role=account.role)
 
 
 # ------------------------------------------------------------------- identity
@@ -202,6 +252,29 @@ def set_admin_status(
     db: Session = Depends(get_db),
 ) -> AdminAccountRead:
     return admin_service.set_admin_active(db, admin=admin, admin_id=admin_id, is_active=payload.is_active)
+
+
+@secure_router.post("/admins/invites", response_model=AdminInviteIssued, status_code=201)
+def issue_admin_invite(
+    payload: AdminInviteRequest,
+    admin: AdminUser = Depends(require_permission(ADMINS_WRITE)),
+    db: Session = Depends(get_db),
+) -> AdminInviteIssued:
+    """Mint an enrolment link. The token is returned once and never stored in clear.
+
+    Works for a new colleague and for a locked-out existing admin: enrolling through
+    the link always sets a fresh password and a fresh TOTP secret.
+    """
+    invite, token = enrolment.issue_invite(
+        db, email=payload.email, role=payload.role, issued_by=admin.id
+    )
+    return AdminInviteIssued(
+        email=invite.email,
+        role=invite.role,
+        expires_at=invite.expires_at,
+        token=token,
+        enrol_path=f"/admin/enrol?token={token}",
+    )
 
 
 @secure_router.post("/admins/{admin_id}/mfa/rotate", response_model=AdminAccountCreated)

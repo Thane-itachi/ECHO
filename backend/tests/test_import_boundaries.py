@@ -77,8 +77,18 @@ def test_admin_routes_are_gated_by_require_admin():
         assert route.path.startswith("/admin")
 
 
-def test_public_admin_router_only_exposes_login():
+def test_public_admin_router_only_exposes_login_and_enrolment():
+    """No unauthenticated admin endpoint may be added without thinking about it.
+
+    The allowlist is the login plus the three enrolment-link routes, and those three
+    carry a 32-byte single-use token in the path: the token *is* the credential. Every
+    other admin route sits behind `require_admin` and is still checked above.
+    """
     from app.admin.routes import public_router
 
     paths = {route.path for route in public_router.routes}
-    assert paths == {"/admin/auth/token"}
+    assert paths == {
+        "/admin/auth/token",
+        "/admin/auth/enrol/{token}",
+        "/admin/auth/enrol/{token}/confirm",
+    }

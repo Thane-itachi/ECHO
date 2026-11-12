@@ -1384,6 +1384,127 @@ button {
   width: 100%;
 }
 
+/* ------------------------------------------------------- admin enrolment page */
+/* One column, centred, no story panel: someone opening a link is mid-task and the
+   only thing on the page should be the next thing they have to do. */
+.enrol-screen {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: clamp(1.4rem, 6vh, 4.5rem) clamp(1rem, 4vw, 2rem) 3.5rem;
+}
+
+.enrol-card {
+  width: 100%;
+  max-width: 30rem;
+  display: grid;
+  gap: 0.95rem;
+}
+
+.enrol-card h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.4vw, 2.05rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.enrol-card .page-sub {
+  margin: 0;
+}
+
+.enrol-card .auth-card {
+  max-width: none;
+}
+
+.enrol-card .primary-button {
+  width: 100%;
+  justify-self: start;
+  text-align: center;
+}
+
+.enrol-brand {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.85rem;
+}
+
+.enrol-brand .brand-mark {
+  color: var(--ink);
+}
+
+.enrol-brand .brand-tagline {
+  color: var(--ink-3);
+}
+
+.auth-card.enrol-secret {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: center;
+}
+
+.enrol-qr {
+  width: 9.5rem;
+  height: 9.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper-2);
+  /* the QR is drawn on cream already; the padding keeps the quiet zone clean */
+  padding: 4px;
+}
+
+.enrol-secret-text {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.enrol-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.enrol-key {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  word-break: break-word;
+  color: var(--ink);
+}
+
+.enrol-hint {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  word-break: break-all;
+}
+
+.enrol-secret-text .ghost-button {
+  justify-self: start;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 560px) {
+  .auth-card.enrol-secret {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .enrol-secret-text {
+    justify-items: center;
+  }
+
+  .enrol-secret-text .ghost-button {
+    justify-self: center;
+  }
+}
+
 /* -------------------------------------------------------------------- admin */
 
 .admin-shell .nav-item.is-active::after {

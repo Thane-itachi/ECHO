@@ -86,6 +86,29 @@ export interface AdminAccountCreated extends AdminAccount {
   otpauth_url: string;
 }
 
+export interface EnrolmentInfo {
+  email: string;
+  role: AdminRole;
+  expires_at: string;
+  account_exists: boolean;
+}
+
+export interface EnrolmentGranted {
+  email: string;
+  role: AdminRole;
+  totp_secret: string;
+  otpauth_url: string;
+  qr_data_uri: string;
+}
+
+export interface InviteIssued {
+  email: string;
+  role: AdminRole;
+  expires_at: string;
+  token: string;
+  enrol_path: string;
+}
+
 export interface AuditEntry {
   id: string;
   action: string;
@@ -143,6 +166,59 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
     throw new ApiError(response.status, 'admin_error', message);
   }
   return payload as T;
+}
+
+/**
+ * Enrolment calls carry no admin token on purpose: the link's token is the only
+ * credential, and a wrong authenticator code here must not sign anyone out of a
+ * console they already have open.
+ */
+async function publicRequest<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
+  const { method = 'GET', body } = options;
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+
+  let response: Response;
+  try {
+    response = await fetch(`/admin${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    throw new ApiError(0, 'network_error', 'Cannot reach the ECHO server. Is the API running?');
+  }
+
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    const message =
+      (payload as { error?: { message?: string } } | null)?.error?.message ?? `Request failed (${response.status})`;
+    throw new ApiError(response.status, 'enrolment_error', message);
+  }
+  return payload as T;
+}
+
+export function enrolmentInfo(token: string): Promise<EnrolmentInfo> {
+  return publicRequest<EnrolmentInfo>(`/auth/enrol/${encodeURIComponent(token)}`);
+}
+
+export function startEnrolment(token: string, password: string): Promise<EnrolmentGranted> {
+  return publicRequest<EnrolmentGranted>(`/auth/enrol/${encodeURIComponent(token)}`, {
+    method: 'POST',
+    body: { password },
+  });
+}
+
+export function confirmEnrolment(token: string, totpCode: string): Promise<{ email: string; role: AdminRole }> {
+  return publicRequest<{ email: string; role: AdminRole }>(
+    `/auth/enrol/${encodeURIComponent(token)}/confirm`,
+    { method: 'POST', body: { totp_code: totpCode } },
+  );
+}
+
+export function issueInvite(email: string, role: AdminRole): Promise<InviteIssued> {
+  return request<InviteIssued>('/admins/invites', { method: 'POST', body: { email, role } });
 }
 
 export async function signIn(email: string, password: string, totpCode: string): Promise<string> {

@@ -97,6 +97,30 @@ class AdminUser(Base, Timestamped):
     )
 
 
+class AdminInvite(Base, Timestamped):
+    """A one-time link that makes someone an administrator without us knowing a password.
+
+    Whoever issues the link never learns the password: the person enrolling chooses it
+    themselves and enrols their own TOTP secret in the same sitting. The token is stored
+    hashed, so a leaked database row is not a usable invitation. Rows are single-use
+    (`used_at`) and time-boxed (`expires_at`).
+    """
+
+    __tablename__ = "admin_invites"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    email: Mapped[str] = mapped_column(String(320), nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String(32), nullable=False, default="founder")
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    issued_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(f"role IN {_in_list(ADMIN_ROLES)}", name="ck_admin_invites_role"),
+    )
+
+
 class Person(Base, Timestamped):
     __tablename__ = "people"
 

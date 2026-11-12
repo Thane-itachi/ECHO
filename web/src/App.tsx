@@ -4,6 +4,7 @@ import { AdminAuthProvider } from './admin/AdminAuth';
 import { EchoMark } from './components/Logo';
 import AdminGuard from './admin/AdminGuard';
 import AdminShell from './admin/AdminShell';
+import AdminEnrol from './admin/pages/AdminEnrol';
 import AdminLogin from './admin/pages/AdminLogin';
 import Admins from './admin/pages/Admins';
 import Audit from './admin/pages/Audit';
@@ -48,6 +49,9 @@ export default function App() {
           </AdminAuthProvider>
         }
       />
+      {/* Public by design: the token in the link is the credential, and the page
+          cannot reach anything in the console without a verified code. */}
+      <Route path="/admin/enrol" element={<AdminEnrol />} />
       <Route
         path="/admin"
         element={

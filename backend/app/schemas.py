@@ -349,6 +349,60 @@ class AdminAccountCreated(AdminAccountRead):
     otpauth_url: str
 
 
+class AdminEnrolmentInfo(BaseModel):
+    """What a person sees before choosing a password: who this link is for, how long
+    it lives, and whether it will create the account or reset an existing one."""
+
+    email: str
+    role: str
+    expires_at: datetime
+    account_exists: bool
+
+
+class AdminEnrolmentRequest(StrictModel):
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+
+
+class AdminEnrolmentGranted(BaseModel):
+    email: str
+    role: str
+    totp_secret: str
+    otpauth_url: str
+    qr_data_uri: str
+
+
+class AdminEnrolmentConfirmRequest(StrictModel):
+    totp_code: str = Field(min_length=6, max_length=6)
+
+
+class AdminEnrolmentConfirmed(BaseModel):
+    email: str
+    role: str
+
+
+class AdminInviteRequest(StrictModel):
+    email: str = Field(min_length=3, max_length=320)
+    role: str = Field(default="support_admin", min_length=1, max_length=32)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        value = value.strip().lower()
+        if not _EMAIL_RE.match(value):
+            raise ValueError("must be a valid email address")
+        return value
+
+
+class AdminInviteIssued(BaseModel):
+    """The raw token is returned exactly once, to the founder who minted it."""
+
+    email: str
+    role: str
+    expires_at: datetime
+    token: str
+    enrol_path: str
+
+
 class AdminIdentity(BaseModel):
     id: str
     email: str
