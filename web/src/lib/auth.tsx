@@ -13,6 +13,7 @@ interface AuthValue {
   /** Spend the code from the email and open the vault. */
   verifyEmail: (email: string, code: string) => Promise<void>;
   setEmailOtp: (enabled: boolean) => Promise<void>;
+  setReminderEmail: (enabled: boolean) => Promise<void>;
   signOut: () => void;
 }
 
@@ -73,14 +74,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.setAuthPreferences({ email_otp_enabled: enabled }));
   }, []);
 
+  const setReminderEmail = useCallback(async (enabled: boolean) => {
+    setUser(await api.setReminderEmail(enabled));
+  }, []);
+
   const signOut = useCallback(() => {
     setToken(null);
     setUser(null);
   }, []);
 
   const value = useMemo<AuthValue>(
-    () => ({ user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, signOut }),
-    [user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, signOut],
+    () => ({ user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, setReminderEmail, signOut }),
+    [user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, setReminderEmail, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

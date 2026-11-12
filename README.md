@@ -26,7 +26,7 @@ under [What is not done](#what-is-not-done).
 | People | Add and remove the people your memories are about. Notes are encrypted too. |
 | Captures | A pasted note goes into a durable queue; the extraction worker turns it into **proposals** (`pending → approved/rejected`). Rule-based by default, model-backed when a provider is configured, and in both cases a proposal is discarded unless its source sentence is word-for-word in your note. Approval is an audited state transition that creates exactly one memory. |
 | Ask ECHO | Answers with citations. With no model configured it quotes your stored memories, marks them `[1]`, `[2]`, and lists the sources. With OpenAI configured the model writes the sentence over those same notes, and an answer that cites nothing is discarded in favour of the quotation. `mode` says which one answered. |
-| Reminders | Durable `jobs` + outbox queue with `SKIP LOCKED` and one idempotency key per occurrence, so a restart never double-sends. Due reminders are delivered as notifications to the user's own devices. |
+| Reminders | Durable `jobs` + outbox queue with `SKIP LOCKED` and one idempotency key per occurrence, so a restart never double-sends. Due reminders are delivered as a notification to the user's own devices **and** as an email, which carries a one-click opt-out that needs no login. A failing provider is retried with backoff; an opt-out is recorded as `suppressed`, never as an error. See [Reminder email](#reminder-email). |
 | Notifications | Web Push: a phone or laptop subscribes from the sidebar, and a due reminder arrives as a notification with ECHO closed. Payloads are encrypted per device, a retired device is deleted rather than retried, and a test button proves the setup. See [Notifications on your phone](#notifications-on-your-phone). |
 | Documents | Encrypted attachments: the bytes are encrypted before they reach the disk, filenames are generated server-side, size-capped, owner-scoped, optionally attached to a memory. |
 | Links | Memory-to-memory connections, owner-checked on both ends, idempotent, self-links refused. |
@@ -44,11 +44,12 @@ Stated plainly, because a roadmap that hides this is a sales document:
   [Optional model provider](#optional-model-provider-openai)). What is not done is
   multi-provider support: only the OpenAI wire protocol is implemented, which covers
   OpenAI, Azure-style gateways, vLLM, LM Studio and Ollama.
-- **Reminders go out as push notifications, not as email.** Web Push is wired end to
-  end (encrypted payload, VAPID signature, a device that is retired is removed). The
-  email channel for reminders is still a stub: the outbox row is written and marked
-  `failed` with "not wired yet", because a reminder email needs a template and an
-  opt-out that do not exist. Nothing pretends to have sent it.
+- **Reminders reach you two ways, and the email has no "open the app" escape hatch
+  beyond a link.** Push is wired end to end (encrypted payload, VAPID signature, a
+  retired device is removed), and email now has a template, a one-click opt-out and a
+  retrying outbox (see [Reminder email](#reminder-email)). What is still missing is
+  anything clever in the message: it states the reminder and its due time in UTC, not
+  "in 2 hours", and it cannot be snoozed from the mailbox.
 - **A push notification is only as good as the browser.** iOS Safari requires the site
   to be added to the Home Screen; a browser with notifications blocked cannot be fixed
   from inside the app, so the toggle says so instead of failing silently.
@@ -325,6 +326,69 @@ that rather than showing a button that does nothing.
 - **The reminder is queued once.** The push outbox row carries the reminder's own
   idempotency key (`outbox:push:<notification_key>`), so a worker restart, or a second
   worker, cannot send it twice.
+
+---
+
+## Reminder email
+
+On by default, because a reminder you are never told about is just a row in a table.
+The switch is in the sidebar (**Email me reminders**), and the same switch is offered
+at the bottom of every message.
+
+```bash
+cd backend
+ECHO_RESEND_API_KEY=re_... ECHO_EMAIL_FROM="ECHO <reminders@yourdomain.com>" \
+ECHO_PUBLIC_APP_URL=https://app.yourdomain.com ECHO_PUBLIC_API_URL=https://api.yourdomain.com \
+  python -m app.worker      # the worker drains the outbox
+```
+
+`ECHO_PUBLIC_APP_URL` and `ECHO_PUBLIC_API_URL` matter: a mail client has no idea which
+host sent the message, so the "open your reminders" link and the opt-out link have to be
+absolute.
+
+**What the message is.** A subject (`Reminder: <what>`), the reminder, the due time in
+UTC, a link back into the app, and one line saying why you got it. Plain text first
+because that is the version that always renders, with an HTML body that matches the app
+for clients that show it. It also carries `List-Unsubscribe` and
+`List-Unsubscribe-Post: List-Unsubscribe=One-Click`, so the mail client offers "unsubscribe"
+in its own chrome instead of hiding the switch in a footer.
+
+**The opt-out link is a signed capability, and it asks before it acts.**
+
+- The URL carries `<user id>.<HMAC>`, keyed with the deployment secret. Editing the id to
+  point at somebody else produces a link that verifies for nobody; the page says the
+  link is not valid and reveals nothing about whose account it was.
+- There is no expiry, deliberately. An unsubscribe link in a six-month-old email still
+  has to work, because a link that stops working is how you get reported as spam.
+- Opening the link opts nobody out. Mail clients and security scanners fetch every link
+  in a message before a person sees it, so a `GET` that acted would silently
+  unsubscribe people who never clicked anything. `GET` renders a page with a button;
+  only the `POST` changes the flag. Turning them back on works from the same page.
+- Both changes are written to the audit log, actor `system`, detail `via: email link`.
+
+**Delivery is retried, and a deliberate skip is not a failure.** The outbox used to have
+one state for "did not work": a row that failed was `failed`, and the reminder was lost.
+Now:
+
+| state | meaning |
+| --- | --- |
+| `sent` | the provider accepted it |
+| `pending` | a transient failure; retried after a backoff (1, 2, 4, 8 minutes, capped at 15) |
+| `failed` | five attempts, or the provider refused it outright. Someone should look |
+| `suppressed` | deliberately not sent: reminder email is off, the account is gone, or no provider is configured. Terminal, never retried |
+
+`suppressed` exists so an opt-out does not look like an outage in the logs, and so
+local development records "nothing was sent and here is why" instead of a lie. With no
+provider configured the message is also written to the worker log
+(`/tmp/echo-worker.log`, prefixed `email (not sent, no provider)`), so the template and
+the opt-out link can be walked locally without a mailbox; the row still says
+`suppressed`, never `sent`. The preference is checked twice: when the reminder fires, so an opted-out account
+does not accumulate rows, and again at delivery, because an hour can pass between the
+two and an opt-out that only applies to future reminders is not an opt-out.
+
+**What is not done.** No bounce or complaint handling: a hard bounce is retried like any
+other failure and lands in `failed` after five attempts. A real sender needs a
+suppression list fed by the provider's webhooks, and that is not built.
 
 ---
 

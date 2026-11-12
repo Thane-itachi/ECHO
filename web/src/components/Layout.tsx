@@ -16,10 +16,11 @@ const NAV = [
 ];
 
 export default function Layout() {
-  const { user, signOut, setEmailOtp } = useAuth();
+  const { user, signOut, setEmailOtp, setReminderEmail } = useAuth();
   const [pending, setPending] = useState<number | null>(null);
   const [otpBusy, setOtpBusy] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
+  const [reminderBusy, setReminderBusy] = useState(false);
 
   async function toggleSignInCode(enabled: boolean) {
     setOtpBusy(true);
@@ -30,6 +31,18 @@ export default function Layout() {
       setOtpError('Could not change that. Confirm your email address first.');
     } finally {
       setOtpBusy(false);
+    }
+  }
+
+  async function toggleReminderEmail(enabled: boolean) {
+    setReminderBusy(true);
+    setOtpError(null);
+    try {
+      await setReminderEmail(enabled);
+    } catch {
+      setOtpError('Could not change that just now. Try again in a moment.');
+    } finally {
+      setReminderBusy(false);
     }
   }
 
@@ -95,6 +108,18 @@ export default function Layout() {
             <span>
               Email me a code at sign-in
               <small>Your password, then six digits. Off by default.</small>
+            </span>
+          </label>
+          <label className="sidebar-toggle">
+            <input
+              type="checkbox"
+              checked={user?.reminder_email_enabled ?? true}
+              disabled={reminderBusy}
+              onChange={(event) => void toggleReminderEmail(event.target.checked)}
+            />
+            <span>
+              Email me reminders
+              <small>A promise lands in your inbox when it comes due. One click turns it off.</small>
             </span>
           </label>
           <NotificationToggle />

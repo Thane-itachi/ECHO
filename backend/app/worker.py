@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.crypto import CipherError, build_cipher
-from app.db.models import Reminder
+from app.db.models import Reminder, User
 from app.repositories.memories import PersonRepository
 from app.repositories.proposals import ProposalRepository
 from app.repositories.system import AuditRepository
@@ -36,13 +36,17 @@ def handle_reminder_notify(session: Session, job) -> None:
         "title": reminder.title,
         "due_at": reminder.due_at.isoformat() if reminder.due_at else None,
     }
-    enqueue_outbox(
-        session,
-        idempotency_key=f"outbox:{reminder.notification_key}",
-        channel="email",
-        user_id=reminder.user_id,
-        payload=payload,
-    )
+    # Reminder email is on by default, and off is a real switch: an account that turned
+    # it off should not accumulate rows that the drain then has to decline.
+    owner = session.get(User, reminder.user_id)
+    if owner is not None and owner.reminder_email_enabled:
+        enqueue_outbox(
+            session,
+            idempotency_key=f"outbox:{reminder.notification_key}",
+            channel="email",
+            user_id=reminder.user_id,
+            payload=payload,
+        )
     # Same notification, second channel. Queued only when there is a device to reach,
     # so an account that never enabled notifications does not accumulate dead rows.
     push = PushService(session, reminder.user_id, pusher=build_pusher())

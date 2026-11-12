@@ -88,10 +88,19 @@ class UserRead(BaseModel):
     is_active: bool
     email_verified: bool
     email_otp_enabled: bool
+    #: Reminder email, on by default. The account holder can turn it off here or from
+    #: the one-click link in any reminder.
+    reminder_email_enabled: bool = True
     created_at: datetime
     #: Development only, and only with no mail provider configured: the code comes back
     #: so the flow can be walked without a mailbox. Production never sets it.
     dev_code: str | None = None
+
+
+class ReminderEmailPreference(StrictModel):
+    """Turn reminder email on or off. Nothing else is configurable here."""
+
+    enabled: bool
 
 
 class EmailCodeRequest(StrictModel):

@@ -84,10 +84,26 @@ class OutboxRepository:
             select(Outbox).where(Outbox.idempotency_key == idempotency_key)
         ).one_or_none()
 
-    def pending(self, *, limit: int = 50) -> list[Outbox]:
+    def pending(self, *, limit: int = 50, now=None) -> list[Outbox]:
+        """Rows that are due for a delivery attempt.
+
+        `available_at` is the retry delay after a failed attempt; NULL means now.
+        Ordering is oldest first, so a retrying row cannot starve newer ones.
+        """
+        from sqlalchemy import or_
+
+        from app.core.time import utcnow
+
+        moment = now or utcnow()
         return list(
             self.session.scalars(
-                select(Outbox).where(Outbox.status == "pending").order_by(Outbox.created_at.asc()).limit(limit)
+                select(Outbox)
+                .where(
+                    Outbox.status == "pending",
+                    or_(Outbox.available_at.is_(None), Outbox.available_at <= moment),
+                )
+                .order_by(Outbox.created_at.asc())
+                .limit(limit)
             )
         )
 

@@ -41,6 +41,7 @@ from app.schemas import (
     LoginWithCodeRequest,
     PasswordResetRequest,
     RegisterRequest,
+    ReminderEmailPreference,
     StatusResponse,
     TokenResponse,
     UserRead,
@@ -255,6 +256,19 @@ def update_preferences(
     if payload.email_otp_enabled and not user.email_verified:
         raise Forbidden("confirm your email address before turning on codes at sign-in")
     user.email_otp_enabled = payload.email_otp_enabled
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.patch("/reminder-email", response_model=UserRead)
+def set_reminder_email(
+    payload: ReminderEmailPreference, user: User = Depends(current_user), db: Session = Depends(get_db)
+) -> User:
+    """The switch behind reminder email, separate from `/preferences`: signing in with
+    a code and being reminded about a promise are unrelated choices, and the code one
+    has a verification precondition this one does not need."""
+    user.reminder_email_enabled = payload.enabled
     db.commit()
     db.refresh(user)
     return user

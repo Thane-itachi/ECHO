@@ -77,6 +77,11 @@ class Settings:
     #: Pepper for the stored code digests. A bare SHA of a six-digit code is not a
     #: hash, it is a lookup table, so the digest is keyed.
     email_code_pepper: str | None
+    #: Absolute addresses used in outgoing mail, because a mail client has no idea
+    #: which host sent it. The app URL is where "open your reminders" points; the API
+    #: URL is where the one-click opt-out page lives.
+    public_app_url: str
+    public_api_url: str
     #: Web Push (notifications to the user's phone or desktop). The VAPID keypair
     #: identifies this server to the push service; the public half is handed to the
     #: browser, the private half never leaves the process. With no keypair the push
@@ -176,6 +181,8 @@ def load_settings() -> Settings:
         email_code_hourly_per_address=_get_int("ECHO_EMAIL_CODE_HOURLY_PER_ADDRESS", 5),
         email_code_hourly_per_ip=_get_int("ECHO_EMAIL_CODE_HOURLY_PER_IP", 20),
         email_code_pepper=_get("ECHO_EMAIL_CODE_PEPPER"),
+    public_app_url=(_get("ECHO_PUBLIC_APP_URL", "http://127.0.0.1:5173") or "").rstrip("/"),
+    public_api_url=(_get("ECHO_PUBLIC_API_URL", "http://127.0.0.1:8000") or "").rstrip("/"),
         vapid_public_key=_get("ECHO_VAPID_PUBLIC_KEY"),
         # PEM on one line with literal \n is the shape that survives an env file.
         vapid_private_key=(_get("ECHO_VAPID_PRIVATE_KEY") or "").replace("\\n", "\n") or None,

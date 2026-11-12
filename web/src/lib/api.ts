@@ -28,6 +28,8 @@ export interface User {
   is_active: boolean;
   email_verified: boolean;
   email_otp_enabled: boolean;
+  /** Reminder email, on by default: a reminder nobody is told about is useless. */
+  reminder_email_enabled: boolean;
   created_at: string;
   /** Local development only, with no mail provider: the code just emailed. */
   dev_code?: string | null;
@@ -242,6 +244,10 @@ export function resetPassword(email: string, code: string, password: string): Pr
 
 export function setAuthPreferences(input: { email_otp_enabled: boolean }): Promise<User> {
   return request<User>('/auth/preferences', { method: 'PATCH', body: input });
+}
+
+export function setReminderEmail(enabled: boolean): Promise<User> {
+  return request<User>('/auth/reminder-email', { method: 'PATCH', body: { enabled } });
 }
 
 /* ------------------------------------------------------------- memories ---- */

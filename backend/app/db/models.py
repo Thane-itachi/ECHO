@@ -46,7 +46,10 @@ ADMIN_ROLES: tuple[str, ...] = ("founder", "platform_admin", "support_admin")
 DOCUMENT_SCAN_STATUSES: tuple[str, ...] = ("stored", "quarantined")
 PROPOSAL_STATUSES: tuple[str, ...] = ("pending", "approved", "rejected")
 JOB_STATUSES: tuple[str, ...] = ("queued", "running", "done", "failed")
-OUTBOX_STATUSES: tuple[str, ...] = ("pending", "sent", "failed")
+#: `suppressed` is not a failure: the recipient cannot or should not receive this
+#: message (reminder email turned off, no address left, provider disabled in dev). It
+#: is terminal and never retried, so an opt-out does not look like an outage.
+OUTBOX_STATUSES: tuple[str, ...] = ("pending", "sent", "failed", "suppressed")
 REMINDER_STATUSES: tuple[str, ...] = ("scheduled", "notified", "cancelled", "done")
 ACTOR_TYPES: tuple[str, ...] = ("user", "admin", "system")
 
@@ -85,6 +88,10 @@ class User(Base, Timestamped):
     email_otp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     #: Set whenever the password changes, so tokens minted before it stop working.
     credentials_changed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    #: Reminder email. On by default: a promise with a date is not much use if the only
+    #: reminder lives in an app you have to remember to open. Turning it off is a real
+    #: switch, honoured both when a reminder fires and again at delivery.
+    reminder_email_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
 EMAIL_CODE_PURPOSES: tuple[str, ...] = ("verify_email", "login_otp", "password_reset")
@@ -330,6 +337,13 @@ class Outbox(Base, Timestamped):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
     idempotency_key: Mapped[str] = mapped_column(String(160), nullable=False, unique=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    #: Delivery attempts so far, and the reason the last one failed. A provider outage
+    #: is retried with backoff; a message that keeps failing is marked failed rather
+    #: than retried forever.
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    #: Not before this instant: set when a failed attempt is retried with backoff.
+    available_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     __table_args__ = (CheckConstraint(f"status IN {_in_list(OUTBOX_STATUSES)}", name="ck_outbox_status"),)
 
