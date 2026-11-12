@@ -342,6 +342,56 @@ export function cancelReminder(id: string): Promise<Reminder> {
   return request<Reminder>(`/reminders/${id}/cancel`, { method: 'POST' });
 }
 
+/* -------------------------------------------------------- notifications --- */
+
+export interface PushKey {
+  enabled: boolean;
+  public_key: string | null;
+}
+
+export interface PushDevice {
+  id: string;
+  label: string;
+  created_at: string;
+  last_success_at: string | null;
+}
+
+export interface PushDevices {
+  enabled: boolean;
+  count: number;
+  devices: PushDevice[];
+}
+
+export interface TestNotification {
+  attempted: number;
+  sent: number;
+  pruned: number;
+  failed: number;
+}
+
+export function getPushKey(): Promise<PushKey> {
+  return request<PushKey>('/push/key');
+}
+
+export function listPushDevices(): Promise<PushDevices> {
+  return request<PushDevices>('/push/subscriptions');
+}
+
+export function subscribePush(input: {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+}): Promise<{ id: string; label: string; count: number }> {
+  return request('/push/subscribe', { method: 'POST', body: input });
+}
+
+export function unsubscribePush(endpoint: string): Promise<{ removed: boolean; count: number }> {
+  return request('/push/unsubscribe', { method: 'POST', body: { endpoint } });
+}
+
+export function sendTestNotification(): Promise<TestNotification> {
+  return request<TestNotification>('/push/test', { method: 'POST' });
+}
+
 /* ---------------------------------------------------------------- dates --- */
 
 /** The API stores naive UTC; parse it as UTC rather than as browser-local time. */

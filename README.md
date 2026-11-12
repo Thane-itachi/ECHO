@@ -26,7 +26,8 @@ under [What is not done](#what-is-not-done).
 | People | Add and remove the people your memories are about. Notes are encrypted too. |
 | Captures | A pasted note goes into a durable queue; the extraction worker turns it into **proposals** (`pending → approved/rejected`). Rule-based by default, model-backed when a provider is configured, and in both cases a proposal is discarded unless its source sentence is word-for-word in your note. Approval is an audited state transition that creates exactly one memory. |
 | Ask ECHO | Answers with citations. With no model configured it quotes your stored memories, marks them `[1]`, `[2]`, and lists the sources. With OpenAI configured the model writes the sentence over those same notes, and an answer that cites nothing is discarded in favour of the quotation. `mode` says which one answered. |
-| Reminders | Durable `jobs` + outbox queue with `SKIP LOCKED` and one idempotency key per occurrence, so a restart never double-sends. |
+| Reminders | Durable `jobs` + outbox queue with `SKIP LOCKED` and one idempotency key per occurrence, so a restart never double-sends. Due reminders are delivered as notifications to the user's own devices. |
+| Notifications | Web Push: a phone or laptop subscribes from the sidebar, and a due reminder arrives as a notification with ECHO closed. Payloads are encrypted per device, a retired device is deleted rather than retried, and a test button proves the setup. See [Notifications on your phone](#notifications-on-your-phone). |
 | Documents | Encrypted attachments: the bytes are encrypted before they reach the disk, filenames are generated server-side, size-capped, owner-scoped, optionally attached to a memory. |
 | Links | Memory-to-memory connections, owner-checked on both ends, idempotent, self-links refused. |
 | Isolation | Every private row carries a `NOT NULL user_id`, and `OwnedRepository` cannot be constructed without an owner scope, so a cross-user read is a 404, not an IDOR. |
@@ -43,9 +44,14 @@ Stated plainly, because a roadmap that hides this is a sales document:
   [Optional model provider](#optional-model-provider-openai)). What is not done is
   multi-provider support: only the OpenAI wire protocol is implemented, which covers
   OpenAI, Azure-style gateways, vLLM, LM Studio and Ollama.
-- **Reminder delivery stops at the outbox.** The mailer that sends email codes can carry
-  reminders too, so what is missing is the template and the opt-out, not the transport. `app/scripts/drain_outbox.py` logs what
-  would be sent. Wiring an email or push provider is one function (`deliver`).
+- **Reminders go out as push notifications, not as email.** Web Push is wired end to
+  end (encrypted payload, VAPID signature, a device that is retired is removed). The
+  email channel for reminders is still a stub: the outbox row is written and marked
+  `failed` with "not wired yet", because a reminder email needs a template and an
+  opt-out that do not exist. Nothing pretends to have sent it.
+- **A push notification is only as good as the browser.** iOS Safari requires the site
+  to be added to the Home Screen; a browser with notifications blocked cannot be fixed
+  from inside the app, so the toggle says so instead of failing silently.
 - **Search is blind-index based**, so it supports terms and prefixes, not fuzzy
   matching or embeddings. PostgreSQL `pg_trgm`/`pgvector` is the upgrade path.
 - **No export, no import, no sharing.** A vault is private by construction; sharing
@@ -269,6 +275,58 @@ memories retrieved for a question, and the text of a captured note, are sent to 
 decision: leave the key unset and no content ever leaves the machine. Requests are
 bounded (20s timeout, ~400 output tokens for an answer, ~900 for extraction) so a
 stuck provider costs a request a second, not a hung worker.
+
+## Notifications on your phone
+
+A reminder is only useful if it reaches you with the tab closed. That is Web Push: the
+browser hands ECHO a subscription for that device, ECHO stores it against your account,
+and a due reminder is encrypted to that device and handed to the push service (Google's
+or Mozilla's), which relays ciphertext it cannot read.
+
+```bash
+cd backend
+python -m app.scripts.vapid_keys        # prints two lines, paste them into .env
+# ECHO_VAPID_PUBLIC_KEY=BC...          # reaches browsers, that is expected
+# ECHO_VAPID_PRIVATE_KEY=MIGHAgEA...   # base64 DER on one line; stays here
+# ECHO_VAPID_SUBJECT=mailto:you@yourdomain.com
+```
+
+Restart the API and the worker. The startup log says
+`notifications: web push (VAPID configured)`; with no keypair it says they are not
+delivered, and the subscribe endpoint answers `503 push_not_configured` rather than
+collecting endpoints it could never use.
+
+Then, in the app: sidebar → **Notify me on this device** → allow the browser prompt →
+**Send a test notification**. On an iPhone the site has to be added to the Home Screen
+first; Apple allows web push only for installed web apps, and the sidebar says exactly
+that rather than showing a button that does nothing.
+
+**What is guaranteed, and why each one is there:**
+
+- **One subscription per browser, owned by one account.** The endpoint is a capability:
+  signing in as a different user on the same browser moves it, so the previous account
+  cannot keep notifying that device. Endpoints are never logged and never returned by
+  the API.
+- **A retired device is deleted, not retried.** A `404`/`410` from the push service means
+  the device is gone (cleared data, uninstalled, expired). Retrying that forever is how a
+  notification system becomes a source of noise. Other failures increment a counter, and
+  a device that never succeeds is dropped after five tries.
+- **One broken device cannot mute the rest.** Delivery is per device; a failure on one is
+  recorded and the loop continues.
+- **A bad keypair fails at startup, not at send time.** The public key is derived from
+  the private key and compared with `ECHO_VAPID_PUBLIC_KEY`. A mismatch is a
+  `RuntimeError` when the process starts, because the alternative is browsers
+  subscribing with a key the server cannot sign for and every push coming back as an
+  opaque `403`.
+- **The service worker navigates, it does not trust.** The payload is type-checked and
+  the click target must be a same-origin relative path, so a malformed or hostile push
+  cannot send the user to another site. There is no caching layer: a memory vault
+  should never serve yesterday's vault from a stale cache.
+- **The reminder is queued once.** The push outbox row carries the reminder's own
+  idempotency key (`outbox:push:<notification_key>`), so a worker restart, or a second
+  worker, cannot send it twice.
+
+---
 
 ## Design decisions worth knowing
 

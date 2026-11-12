@@ -20,6 +20,7 @@ from app.repositories.system import AuditRepository
 from app.services.extraction import extract_proposals, extract_proposals_with_model
 from app.services.llm import build_llm
 from app.services.jobs import claim_jobs, complete_job, enqueue_outbox, fail_job
+from app.services.push import Notification, PushService, build_pusher
 
 logger = logging.getLogger("echo.worker")
 
@@ -30,17 +31,33 @@ def handle_reminder_notify(session: Session, job) -> None:
     reminder = session.get(Reminder, job.payload.get("reminder_id"))
     if reminder is None or reminder.status != "scheduled":
         return
+    payload = {
+        "reminder_id": reminder.id,
+        "title": reminder.title,
+        "due_at": reminder.due_at.isoformat() if reminder.due_at else None,
+    }
     enqueue_outbox(
         session,
         idempotency_key=f"outbox:{reminder.notification_key}",
         channel="email",
         user_id=reminder.user_id,
-        payload={
-            "reminder_id": reminder.id,
-            "title": reminder.title,
-            "due_at": reminder.due_at.isoformat() if reminder.due_at else None,
-        },
+        payload=payload,
     )
+    # Same notification, second channel. Queued only when there is a device to reach,
+    # so an account that never enabled notifications does not accumulate dead rows.
+    push = PushService(session, reminder.user_id, pusher=build_pusher())
+    if push.device_count():
+        enqueue_outbox(
+            session,
+            idempotency_key=f"outbox:push:{reminder.notification_key}",
+            channel="push",
+            user_id=reminder.user_id,
+            payload={
+                **payload,
+                "body": "A promise you asked to be reminded about is due.",
+                "url": "/reminders",
+            },
+        )
     reminder.status = "notified"
 
 
@@ -153,6 +170,7 @@ def run_once(session_factory, *, worker_id: str, limit: int = 10) -> RunStats:
 
 def main(poll_interval: float = 2.0) -> None:  # pragma: no cover - process entry point
     from app.db.session import build_engine, build_session_factory, create_all
+    from app.scripts.drain_outbox import drain
 
     logging.basicConfig(level=logging.INFO)
     engine = build_engine()
@@ -172,6 +190,13 @@ def main(poll_interval: float = 2.0) -> None:  # pragma: no cover - process entr
     logger.info("echo worker %s started", worker_id)
     while not stopping["flag"]:
         stats = run_once(factory, worker_id=worker_id)
+        # A due reminder is only half the job: the outbox row it wrote still has to be
+        # handed to the push service or the mailer. Draining here is what makes a
+        # reminder actually arrive without a second cron.
+        try:
+            drain(factory, limit=50)
+        except Exception:  # noqa: BLE001 - a provider outage must not stop the worker
+            logger.exception("outbox drain failed; will retry on the next pass")
         if stats.claimed == 0:
             time.sleep(poll_interval)
     logger.info("echo worker %s stopped", worker_id)

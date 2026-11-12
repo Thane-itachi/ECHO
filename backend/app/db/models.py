@@ -334,6 +334,31 @@ class Outbox(Base, Timestamped):
     __table_args__ = (CheckConstraint(f"status IN {_in_list(OUTBOX_STATUSES)}", name="ck_outbox_status"),)
 
 
+class PushSubscription(Base, Timestamped):
+    """One browser or phone that agreed to receive notifications.
+
+    `endpoint` is the capability: whoever holds it can push to that device, so it is
+    treated as a secret in transit (never logged, never returned to a client). A
+    device that unsubscribes, or whose endpoint the push service retires (404/410),
+    is deleted rather than kept as a dead row.
+    """
+
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    endpoint: Mapped[str] = mapped_column(String(512), nullable=False, unique=True)
+    # Browser public key (p256dh) and auth secret: needed to encrypt each payload so
+    # only that device can read it. The push service relays ciphertext it cannot open.
+    p256dh: Mapped[str] = mapped_column(String(200), nullable=False)
+    auth: Mapped[str] = mapped_column(String(64), nullable=False)
+    user_agent: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    failure_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_log"
 

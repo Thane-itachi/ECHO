@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { EchoMark } from '../components/Logo';
+import NotificationToggle from '../components/NotificationToggle';
 import { listProposals } from '../lib/api';
 import { useAuth } from '../lib/auth';
 
@@ -96,6 +97,7 @@ export default function Layout() {
               <small>Your password, then six digits. Off by default.</small>
             </span>
           </label>
+          <NotificationToggle />
           {otpError ? <p className="sidebar-note">{otpError}</p> : null}
           <p className="sidebar-note">
             Everything here is sealed with your own key.

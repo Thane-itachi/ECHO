@@ -77,6 +77,14 @@ class Settings:
     #: Pepper for the stored code digests. A bare SHA of a six-digit code is not a
     #: hash, it is a lookup table, so the digest is keyed.
     email_code_pepper: str | None
+    #: Web Push (notifications to the user's phone or desktop). The VAPID keypair
+    #: identifies this server to the push service; the public half is handed to the
+    #: browser, the private half never leaves the process. With no keypair the push
+    #: endpoints answer "not configured" instead of failing at send time.
+    vapid_public_key: str | None
+    vapid_private_key: str | None
+    vapid_subject: str
+    push_timeout_seconds: float
 
     @property
     def is_production(self) -> bool:
@@ -107,6 +115,11 @@ class Settings:
     def email_enabled(self) -> bool:
         """True only when a provider is named *and* it has a key."""
         return self.email_provider == "resend" and bool(self.resend_api_key)
+
+    @property
+    def push_enabled(self) -> bool:
+        """A keypair, both halves, or nothing: half a keypair cannot sign anything."""
+        return bool(self.vapid_public_key and self.vapid_private_key)
 
     @property
     def email_dev_echo(self) -> bool:
@@ -163,6 +176,11 @@ def load_settings() -> Settings:
         email_code_hourly_per_address=_get_int("ECHO_EMAIL_CODE_HOURLY_PER_ADDRESS", 5),
         email_code_hourly_per_ip=_get_int("ECHO_EMAIL_CODE_HOURLY_PER_IP", 20),
         email_code_pepper=_get("ECHO_EMAIL_CODE_PEPPER"),
+        vapid_public_key=_get("ECHO_VAPID_PUBLIC_KEY"),
+        # PEM on one line with literal \n is the shape that survives an env file.
+        vapid_private_key=(_get("ECHO_VAPID_PRIVATE_KEY") or "").replace("\\n", "\n") or None,
+        vapid_subject=_get("ECHO_VAPID_SUBJECT", "mailto:push@example.com") or "mailto:push@example.com",
+        push_timeout_seconds=_get_float("ECHO_PUSH_TIMEOUT", 10.0),
     )
     if settings.is_production:
         problems = []

@@ -18,12 +18,14 @@ from app.api import (
     routes_documents,
     routes_memories,
     routes_proposals,
+    routes_push,
     routes_reminders,
 )
 from app.core.config import settings
 from app.core.crypto import build_cipher, set_process_cipher
 from app.services.llm import build_llm, describe as describe_llm
 from app.services.mailer import build_mailer, describe as describe_mailer
+from app.services.push import build_pusher, describe as describe_push
 from app.core.errors import register_exception_handlers
 from app.db.session import build_engine, build_session_factory, create_all
 
@@ -31,7 +33,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("echo")
 
 
-def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None) -> FastAPI:
+def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None, pusher=None) -> FastAPI:
     app = FastAPI(
         title="ECHO API",
         version="0.1.0",
@@ -58,6 +60,9 @@ def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None) -> F
     # answers and rule-based extraction, with no network call anywhere in the path.
     app.state.llm = llm or build_llm()
     app.state.mailer = mailer or build_mailer()
+    # Web Push. `NullPusher` is a supported configuration: the endpoints answer
+    # "not configured" and no reminder pretends to have reached a phone.
+    app.state.pusher = pusher or build_pusher()
 
     register_exception_handlers(app)
     app.add_middleware(
@@ -77,6 +82,7 @@ def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None) -> F
         routes_ask.router,
         routes_captures.router,
         routes_documents.router,
+        routes_push.router,
         admin_routes.public_router,
         admin_routes.secure_router,
     ):
@@ -89,6 +95,7 @@ def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None) -> F
     logger.info("ECHO api ready (env=%s)", settings.env)
     logger.info("%s", describe_llm())
     logger.info("email: %s", describe_mailer(app.state.mailer))
+    logger.info("notifications: %s", describe_push(app.state.pusher))
     if settings.email_dev_echo:
         logger.warning("email codes are logged, not delivered (development, no provider); codes echo in API responses")
     return app

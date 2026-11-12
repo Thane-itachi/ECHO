@@ -2189,3 +2189,29 @@ h3 {
 .splash-mark {
   margin-bottom: 0.9rem;
 }
+
+/* ------------------------------------------------------- notifications ---- */
+
+/* The sidebar becomes a compact strip on a phone, and its notes are hidden there to
+   save room. Notification guidance is the exception: "add ECHO to your Home Screen" is
+   advice a phone user needs *on* the phone, so this block keeps its text. */
+.notify-block {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.notify-block .sidebar-note {
+  display: block;
+  margin-top: 0.1rem;
+  color: rgba(242, 237, 227, 0.62);
+}
+
+.notify-block .notify-error {
+  color: #e6a08c;
+}
+
+.notify-test {
+  justify-self: start;
+  font-size: 0.74rem;
+  padding: 0.35rem 0.6rem;
+}

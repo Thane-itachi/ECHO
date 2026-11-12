@@ -6,6 +6,8 @@ PyJWT>=2.8
 cryptography>=42.0
 # production database driver
 psycopg[binary]>=3.2
+# Web Push: notification encryption (AES-GCM) and the VAPID signature
+pywebpush>=2.0
 # migrations (production bootstrap: alembic upgrade head)
 alembic>=1.13
 # test tooling
