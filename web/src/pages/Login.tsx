@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 
+import { EchoMark } from '../components/Logo';
 import { errorMessage, useAuth, useAuthFailureHandler } from '../lib/auth';
 
 type Mode = 'signin' | 'signup';
@@ -29,7 +30,11 @@ export default function Login() {
   return (
     <div className="auth-screen">
       <section className="auth-story">
-        <div className="wordmark">ECHO</div>
+        <EchoMark size={300} className="auth-watermark" />
+        <div className="auth-lockup">
+          <EchoMark size={42} />
+          <div className="wordmark">ECHO</div>
+        </div>
         <h1>
           Never forget
           <br />

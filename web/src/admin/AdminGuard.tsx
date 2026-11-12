@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { useAdminAuth } from './AdminAuth';
+import { EchoMark } from '../components/Logo';
 
 /**
  * Gate for every console screen. A user session is not an admin session: this checks
@@ -13,6 +14,7 @@ export default function AdminGuard() {
   if (loading) {
     return (
       <div className="splash">
+      <EchoMark size={44} className="splash-mark" />
         <div className="wordmark">ECHO</div>
         <p>Checking your administrator session…</p>
       </div>

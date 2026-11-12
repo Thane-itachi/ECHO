@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AdminAuthProvider } from './admin/AdminAuth';
+import { EchoMark } from './components/Logo';
 import AdminGuard from './admin/AdminGuard';
 import AdminShell from './admin/AdminShell';
 import AdminLogin from './admin/pages/AdminLogin';
@@ -22,6 +23,7 @@ import Vault from './pages/Vault';
 function Splash() {
   return (
     <div className="splash">
+      <EchoMark size={44} className="splash-mark" />
       <div className="wordmark">ECHO</div>
       <p>Opening your vault…</p>
     </div>

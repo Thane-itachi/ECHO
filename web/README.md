@@ -76,8 +76,22 @@ reminder renders with "in 2 days". `npm run build` passes with `strict`,
 
 ECHO is set like a small private archive rather than a dashboard: warm paper with a
 faint grain, ink for text, one leather accent, and hairline rules instead of floating
-cards. Fraunces (display) and Karla (text) are self-hosted in `public/fonts`, so the
-type is identical on every machine and needs no network at runtime.
+cards.
+
+**Type.** Three voices, all self-hosted in `public/fonts` (no Google Fonts request, so
+it looks identical offline and on every machine):
+
+- *Instrument Serif* sets the voice: page titles, the wordmark, the sign-in headline.
+  It ships a single weight, so `body { font-synthesis: none }` stops the browser from
+  inventing a fake bold.
+- *Newsreader* is what you actually read: memory bodies, answers, proposals, quotes.
+- *Karla* is the machinery: labels, controls, buttons, numbers.
+
+**The mark.** An E whose arms shorten and fade like a sound dying away. It is one SVG
+(`src/components/Logo.tsx`) tinted through `--mark-tile` / `--mark-ink`, so the same
+shape sits on paper, on the ink sidebar, and in the admin console (where the tile turns
+forest green so you always know which surface you are on). The favicon is
+`public/favicon.svg`, same geometry, hard-coded colours.
 
 A few decisions worth keeping if you extend it:
 
@@ -85,8 +99,7 @@ A few decisions worth keeping if you extend it:
   its own column, and the selected row is marked with a leather rule on its left edge.
 - The reading sheet on the right is deliberately paper-like: a 2px leather top edge, a
   dashed rule above the metadata, and a printed running footer.
-- Colours live in one `:root` block at the top of `styles.css`; if you change the
-  accent there, the whole app follows, including the admin console (which swaps to a
-  green marker so you always know you left the vault).
+- Colours live in one `:root` block at the top of `styles.css`; change the accent there
+  and the whole app follows.
 - Everything is readable at 380px wide: the vault stacks, the sidebar becomes a
   horizontal strip, and the sign-in page drops its editorial panel.

@@ -20,6 +20,7 @@
 
   /* accents: leather for attention, forest for confirmation, ox for danger */
   --leather: #8c4a2b;
+  --leather-mark: #7f4327;
   --leather-deep: #6d3620;
   --leather-wash: #f0e0d4;
   --forest: #2a5145;
@@ -34,7 +35,10 @@
   --panel-muted: #9c9282;
   --panel-rule: #2e2820;
 
-  --display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  /* Instrument Serif sets the voice; Newsreader is what you read; Karla is the
+     machinery: labels, controls, numbers. */
+  --display: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --reading: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   --sans: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
 
@@ -57,6 +61,7 @@ body,
 
 body {
   margin: 0;
+  font-synthesis: none;
   background-color: var(--paper);
   background-image:
     radial-gradient(1100px 600px at 12% -10%, rgba(255, 255, 255, 0.55), transparent 70%),
@@ -88,10 +93,9 @@ h2,
 h3,
 h4 {
   font-family: var(--display);
-  font-weight: 500;
-  font-variation-settings: 'SOFT' 20, 'WONK' 1;
-  letter-spacing: -0.018em;
-  line-height: 1.12;
+  font-weight: 400;
+  letter-spacing: -0.006em;
+  line-height: 1.06;
   margin: 0;
   color: var(--ink);
 }
@@ -471,10 +475,18 @@ button {
 }
 
 .brand {
-  display: grid;
-  gap: 0.5rem;
-  padding-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--panel-rule);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .brand-mark {
@@ -755,7 +767,7 @@ button {
 
 .memory-card-title {
   grid-column: 2;
-  font-family: var(--display);
+  font-family: var(--reading);
   font-size: 1.04rem;
   font-weight: 500;
   line-height: 1.25;
@@ -817,7 +829,7 @@ button {
 }
 
 .detail-body {
-  font-family: var(--display);
+  font-family: var(--reading);
   font-size: 1.05rem;
   line-height: 1.68;
   color: #241e16;
@@ -1037,7 +1049,7 @@ button {
 }
 
 .answer-body {
-  font-family: var(--display);
+  font-family: var(--reading);
   font-size: 1.06rem;
   line-height: 1.7;
   color: #241e16;
@@ -1085,7 +1097,7 @@ button {
 }
 
 .draft-note {
-  font-family: var(--display);
+  font-family: var(--reading);
   font-style: italic;
   font-size: 0.9rem;
   color: var(--ink-3);
@@ -1112,7 +1124,7 @@ button {
 }
 
 .proposal-body {
-  font-family: var(--display);
+  font-family: var(--reading);
   font-size: 1rem;
   line-height: 1.65;
   color: #241e16;
@@ -1122,7 +1134,7 @@ button {
   margin: 0.7rem 0;
   padding: 0.55rem 0.85rem;
   border-left: 2px solid var(--rule-2);
-  font-family: var(--display);
+  font-family: var(--reading);
   font-style: italic;
   font-size: 0.92rem;
   color: var(--ink-3);
@@ -1171,7 +1183,7 @@ button {
 }
 
 .reminder-title {
-  font-family: var(--display);
+  font-family: var(--reading);
   font-size: 1.02rem;
   color: var(--ink);
 }
@@ -1275,6 +1287,8 @@ button {
 }
 
 .auth-story {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1309,7 +1323,7 @@ button {
 
 .auth-story > p {
   max-width: 44ch;
-  font-family: var(--display);
+  font-family: var(--reading);
   font-size: 1.02rem;
   line-height: 1.7;
   color: #b9ae9c;
@@ -1767,4 +1781,169 @@ button {
   font-weight: 600;
   letter-spacing: 0.32em;
   color: var(--ink-3);
+}
+
+/* --------------------------------------------------------------------------
+   type scale
+
+   Instrument Serif is light and generous; set large, it carries the page. Prose
+   sits in Newsreader at reading size, where the eye wants a serif with a proper
+   x-height. Numbers stay in Karla with tabular figures so columns line up.
+   -------------------------------------------------------------------------- */
+
+h1 {
+  font-size: clamp(2.05rem, 3.3vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.012em;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+.brand-mark {
+  font-size: 1.24rem;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  padding-left: 0.02em;
+}
+
+.brand-tagline {
+  font-family: var(--reading);
+  font-size: 0.86rem;
+  letter-spacing: 0;
+}
+
+.auth-story .wordmark,
+.wordmark,
+.splash .wordmark {
+  font-weight: 400;
+  letter-spacing: 0.3em;
+}
+
+.auth-story .wordmark {
+  font-size: 1.35rem;
+}
+
+.wordmark {
+  font-size: 1.15rem;
+}
+
+.empty-title {
+  font-size: 1.28rem;
+  letter-spacing: -0.01em;
+}
+
+.ask-bar input {
+  font-size: 1.24rem;
+  letter-spacing: -0.006em;
+}
+
+.stat-value {
+  font-family: var(--reading);
+  font-size: 2.35rem;
+  font-weight: 400;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.memory-card-title {
+  font-size: 1.06rem;
+  font-weight: 500;
+  line-height: 1.24;
+}
+
+.detail-body {
+  font-size: 1.09rem;
+  line-height: 1.72;
+}
+
+.answer-body {
+  font-size: 1.1rem;
+  line-height: 1.72;
+}
+
+.person-name {
+  font-size: 1.16rem;
+  letter-spacing: -0.006em;
+}
+
+.reminder-title {
+  font-size: 1.04rem;
+  font-weight: 500;
+}
+
+.auth-story h1 {
+  font-size: clamp(2.6rem, 4.4vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+
+.auth-story h1 em {
+  font-style: italic;
+  color: #d9a680;
+}
+
+.story-sign,
+.sidebar-note {
+  font-family: var(--reading);
+  font-style: italic;
+}
+
+.draft-note,
+.proposal-quote {
+  font-family: var(--reading);
+}
+
+/* --------------------------------------------------------------- the mark */
+
+.echo-mark {
+  display: block;
+  flex: none;
+  --mark-tile: var(--leather-mark);
+  --mark-ink: #fbf7f0;
+}
+
+.echo-mark-tile {
+  fill: var(--mark-tile);
+}
+
+.echo-mark-strokes {
+  fill: var(--mark-ink);
+}
+
+.admin-shell .echo-mark {
+  --mark-tile: var(--forest);
+}
+
+.auth-story .auth-watermark {
+  position: absolute;
+  right: -70px;
+  bottom: -80px;
+  width: 340px;
+  height: 340px;
+  opacity: 0.055;
+  pointer-events: none;
+}
+
+.auth-story .auth-watermark .echo-mark-tile {
+  fill: #f4ece0;
+}
+
+.auth-story .auth-watermark .echo-mark-strokes {
+  fill: #16120d;
+}
+
+.auth-lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.splash-mark {
+  margin-bottom: 0.9rem;
 }

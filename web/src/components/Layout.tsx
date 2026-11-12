@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
+import { EchoMark } from '../components/Logo';
 import { listProposals } from '../lib/api';
 import { useAuth } from '../lib/auth';
 
@@ -35,8 +36,11 @@ export default function Layout() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">ECHO</span>
-          <span className="brand-tagline">never forget what matters</span>
+          <EchoMark size={34} />
+          <span className="brand-text">
+            <span className="brand-mark">ECHO</span>
+            <span className="brand-tagline">never forget what matters</span>
+          </span>
         </div>
 
         <nav className="nav">

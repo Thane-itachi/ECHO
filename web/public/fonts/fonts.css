@@ -1,52 +1,37 @@
-/* Self-hosted so ECHO looks the same offline and on any machine: Fraunces for
-   display, Karla for text. Files live in public/fonts. */
+/* Self-hosted so ECHO looks the same offline and on any machine.
+   Instrument Serif for display, Newsreader for reading, Karla for the interface.
+   Files live in public/fonts. */
 
 @font-face {
-  font-family: 'Fraunces';
+  font-family: 'Instrument Serif';
   font-style: italic;
-  font-weight: 400 600;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/fraunces-italic-latinext.woff2') format('woff2');
+  src: url('/fonts/instrument-serif-italic-latinext.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Fraunces';
+  font-family: 'Instrument Serif';
   font-style: italic;
-  font-weight: 400 600;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/fraunces-italic-latin.woff2') format('woff2');
+  src: url('/fonts/instrument-serif-italic-latin.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Fraunces';
+  font-family: 'Instrument Serif';
   font-style: normal;
-  font-weight: 400 700;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/fraunces-normal-latinext.woff2') format('woff2');
+  src: url('/fonts/instrument-serif-normal-latinext.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Fraunces';
+  font-family: 'Instrument Serif';
   font-style: normal;
-  font-weight: 400 700;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/fraunces-normal-latin.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Karla';
-  font-style: italic;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url('/fonts/karla-italic-latinext.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Karla';
-  font-style: italic;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url('/fonts/karla-italic-latin.woff2') format('woff2');
+  src: url('/fonts/instrument-serif-normal-latin.woff2') format('woff2');
 }
 
 @font-face {
@@ -63,4 +48,36 @@
   font-weight: 400 700;
   font-display: swap;
   src: url('/fonts/karla-normal-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url('/fonts/newsreader-italic-latinext.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url('/fonts/newsreader-italic-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/newsreader-normal-latinext.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/newsreader-normal-latin.woff2') format('woff2');
 }

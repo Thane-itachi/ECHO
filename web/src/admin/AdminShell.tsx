@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { useAdminAuth } from './AdminAuth';
+import { EchoMark } from '../components/Logo';
 
 const NAV = [
   { to: '/admin', label: 'Overview', permission: 'stats:read', end: true },
@@ -23,8 +24,11 @@ export default function AdminShell() {
     <div className="shell admin-shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">ECHO</span>
-          <span className="brand-tagline">admin console</span>
+          <EchoMark size={34} />
+          <span className="brand-text">
+            <span className="brand-mark">ECHO</span>
+            <span className="brand-tagline">admin console</span>
+          </span>
         </div>
 
         <nav className="nav">

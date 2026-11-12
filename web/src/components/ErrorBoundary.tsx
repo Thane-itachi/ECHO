@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { EchoMark } from './Logo';
 
 interface Props {
   children: ReactNode;
@@ -29,6 +30,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (!error) return this.props.children;
     return (
       <div className="splash">
+      <EchoMark size={44} className="splash-mark" />
         <div className="wordmark">ECHO</div>
         <h1>This page failed to load</h1>
         <p className="muted">{error.message}</p>
