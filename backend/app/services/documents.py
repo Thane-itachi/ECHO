@@ -1,4 +1,4 @@
-"""Documents: attachments stored encrypted on disk, owned by exactly one user.
+"""Documents: attachments stored encrypted outside the database, owned by one user.
 
 The database keeps metadata (name, size, type, owner, optional memory link); the
 bytes live outside the database, encrypted with the same per-user key as memory
@@ -6,7 +6,7 @@ content. A stolen `storage/` directory is therefore as useless as a stolen datab
 without the master key there is nothing to read.
 
 `storage_key` is generated server-side (`<owner>/<random>`), never taken from the
-uploaded filename, so a filename like `../../etc/passwd` cannot escape the storage
+uploaded filename, so a filename like `../../etc/passwd` cannot escape a local storage
 directory *and* two users with the same filename cannot collide.
 """
 from __future__ import annotations
@@ -22,6 +22,7 @@ from app.core.errors import PayloadTooLarge
 from app.db.models import Attachment
 from app.repositories.memories import AttachmentRepository, MemoryRepository
 from app.schemas import DocumentList, DocumentRead
+from app.services.document_storage import DocumentStore, LocalStore
 from app.services.serializers import to_document_read
 
 
@@ -33,23 +34,19 @@ class DocumentService:
         *,
         cipher: AnyCipher | None = None,
         storage_dir: str | Path | None = None,
+        store: DocumentStore | None = None,
         max_bytes: int | None = None,
     ) -> None:
         self.session = session
         self.owner_id = owner_id
         self.cipher = cipher or get_default_cipher()
-        self.storage_dir = Path(storage_dir or settings.storage_dir)
+        # A store, not a directory: on a serverless deploy the bytes go to object
+        # storage and there is no directory to name. Named `blobs` because `store` is
+        # already the method that takes an upload.
+        self.blobs = store or LocalStore(storage_dir or settings.storage_dir)
         self.max_bytes = max_bytes or settings.max_upload_bytes
         self.documents = AttachmentRepository(session, owner_id)
         self.memories = MemoryRepository(session, owner_id, cipher=self.cipher)
-
-    # ------------------------------------------------------------------ paths
-    def _path(self, storage_key: str) -> Path:
-        root = self.storage_dir.resolve()
-        path = (root / storage_key).resolve()
-        if root not in path.parents:
-            raise PayloadTooLarge("invalid storage key")
-        return path
 
     # ------------------------------------------------------------------ writes
     def store(
@@ -68,9 +65,7 @@ class DocumentService:
             self.memories.require(memory_id)
 
         storage_key = f"{self.owner_id}/{uuid.uuid4().hex}"
-        path = self._path(storage_key)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(self.cipher.encrypt_bytes(data, self.owner_id))
+        self.blobs.put(storage_key, self.cipher.encrypt_bytes(data, self.owner_id))
 
         attachment = self.documents.create(
             filename=Path(filename or "document").name[:255],
@@ -84,9 +79,7 @@ class DocumentService:
 
     def delete(self, document_id: str) -> None:
         attachment = self.documents.require(document_id)
-        path = self._path(attachment.storage_key)
-        if path.exists():
-            path.unlink()
+        self.blobs.delete(attachment.storage_key)
         self.documents.delete(attachment)
         self.session.commit()
 
@@ -104,7 +97,5 @@ class DocumentService:
 
     def open(self, document_id: str) -> tuple[Attachment, bytes]:
         attachment = self.documents.require(document_id)
-        path = self._path(attachment.storage_key)
-        if not path.exists():
-            raise FileNotFoundError(attachment.storage_key)
-        return attachment, self.cipher.decrypt_bytes(path.read_bytes(), self.owner_id)
+        raw = self.blobs.get(attachment.storage_key)  # FileNotFoundError if it is gone
+        return attachment, self.cipher.decrypt_bytes(raw, self.owner_id)

@@ -38,34 +38,6 @@ def a_subscription(endpoint: str = ENDPOINT, **overrides) -> dict:
     return payload
 
 
-@pytest.fixture()
-def pusher(app):
-    """Swap the transport for the duration of a test: nothing dials out."""
-    capture = CapturingPusher()
-    app.state.pusher = capture
-    return capture
-
-
-@pytest.fixture()
-def push_keys(monkeypatch):
-    """Pretend a VAPID keypair is configured, without touching the real env.
-
-    Settings are frozen, so the replacement is installed in the modules that read
-    them (`app.api.routes_push` for the public key endpoint, `app.services.push` for
-    the transport).
-    """
-    import app.api.routes_push as routes_push
-    import app.services.push as push_module
-    from app.scripts.vapid_keys import generate
-
-    # A real keypair, so the startup check on the pair runs exactly as in production.
-    public_key, private_key = generate()
-    adjusted = replace(settings, vapid_public_key=public_key, vapid_private_key=private_key)
-    monkeypatch.setattr(routes_push, "settings", adjusted)
-    monkeypatch.setattr(push_module, "settings", adjusted)
-    return adjusted
-
-
 def test_no_keypair_means_nobody_subscribes(client, make_user):
     user = make_user()
     assert client.get("/api/push/key").json() == {"enabled": False, "public_key": None}

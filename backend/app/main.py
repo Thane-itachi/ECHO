@@ -18,6 +18,7 @@ from app.api import (
     routes_documents,
     routes_memories,
     routes_proposals,
+    routes_internal,
     routes_push,
     routes_reminders,
 )
@@ -25,6 +26,7 @@ from app.core.config import settings
 from app.core.crypto import build_cipher, set_process_cipher
 from app.services.llm import build_llm, describe as describe_llm
 from app.services.mailer import build_mailer, describe as describe_mailer
+from app.services.document_storage import build_document_store, describe as describe_storage
 from app.services.push import build_pusher, describe as describe_push
 from app.core.errors import register_exception_handlers
 from app.db.session import build_engine, build_session_factory, create_all
@@ -46,7 +48,11 @@ def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None, push
     engine = None
     if session_factory is None:
         engine = build_engine()
-        create_all(engine)  # dev bootstrap; production uses Alembic migrations
+        if not settings.is_production:
+            # Development bootstrap. Production runs `alembic upgrade head` instead,
+            # from POST /api/internal/migrate: a cold start must not race another one
+            # into changing the schema.
+            create_all(engine)
         session_factory = build_session_factory(engine)
 
     app.state.engine = engine
@@ -56,6 +62,9 @@ def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None, push
     # the cipher too. One process, one data key.
     set_process_cipher(app.state.cipher)
     app.state.storage_dir = settings.storage_dir
+    if settings.storage_backend != "local":
+        # Object storage, so there is no directory to name and no scratch disk to lose.
+        app.state.document_store = build_document_store()
     # Optional model provider. `None` is a supported configuration: extractive
     # answers and rule-based extraction, with no network call anywhere in the path.
     app.state.llm = llm or build_llm()
@@ -83,6 +92,7 @@ def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None, push
         routes_captures.router,
         routes_documents.router,
         routes_push.router,
+        routes_internal.router,
         admin_routes.public_router,
         admin_routes.secure_router,
     ):

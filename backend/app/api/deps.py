@@ -16,6 +16,7 @@ from app.core.crypto import ContentCipher, NullCipher
 from app.core.errors import Unauthorized
 from app.core.security import USER_AUDIENCE, TokenError, decode_access_token, password_version
 from app.db.models import User
+from app.services.document_storage import DocumentStore, LocalStore
 
 bearer = HTTPBearer(auto_error=False, description="Bearer access token")
 
@@ -41,6 +42,18 @@ def get_llm(request: Request):
 def get_storage_dir(request: Request) -> str:
     """Where encrypted documents live. Overridable per app instance (tests)."""
     return getattr(request.app.state, "storage_dir", settings.storage_dir)
+
+
+def get_document_store(request: Request) -> DocumentStore:
+    """Where encrypted document bytes live: object storage, or a directory.
+
+    Built from `app.state` so a test can point at its own directory without touching
+    module globals.
+    """
+    store = getattr(request.app.state, "document_store", None)
+    if store is not None:
+        return store
+    return LocalStore(getattr(request.app.state, "storage_dir", settings.storage_dir))
 
 
 def _token(credentials: HTTPAuthorizationCredentials | None) -> str:

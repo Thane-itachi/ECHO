@@ -14,6 +14,15 @@ under [What is not done](#what-is-not-done).
 
 ---
 
+## Deploying
+
+A docker or VM deploy runs the API and the worker as two processes
+(`scripts/dev.sh` shows the shape). A serverless deploy needs three answers instead:
+the worker loop becomes a scheduled endpoint, document bytes move to object storage,
+and migrations are an explicit call. That is written down in
+[Deploying ECHO on Vercel](docs/deploy-vercel.md), along with the two database
+choices and their tradeoffs.
+
 ## What works today
 
 | Area | Detail |
@@ -28,7 +37,7 @@ under [What is not done](#what-is-not-done).
 | Ask ECHO | Answers with citations. With no model configured it quotes your stored memories, marks them `[1]`, `[2]`, and lists the sources. With OpenAI configured the model writes the sentence over those same notes, and an answer that cites nothing is discarded in favour of the quotation. `mode` says which one answered. |
 | Reminders | Durable `jobs` + outbox queue with `SKIP LOCKED` and one idempotency key per occurrence, so a restart never double-sends. Due reminders are delivered as a notification to the user's own devices **and** as an email, which carries a one-click opt-out that needs no login. A failing provider is retried with backoff; an opt-out is recorded as `suppressed`, never as an error. See [Reminder email](#reminder-email). |
 | Notifications | Web Push: a phone or laptop subscribes from the sidebar, and a due reminder arrives as a notification with ECHO closed. Payloads are encrypted per device, a retired device is deleted rather than retried, and a test button proves the setup. See [Notifications on your phone](#notifications-on-your-phone). |
-| Documents | Encrypted attachments: the bytes are encrypted before they reach the disk, filenames are generated server-side, size-capped, owner-scoped, optionally attached to a memory. |
+| Documents | Encrypted attachments: the bytes are encrypted before they reach storage (a directory, or Vercel Blob on a serverless deploy), filenames are generated server-side, size-capped, owner-scoped, optionally attached to a memory. |
 | Links | Memory-to-memory connections, owner-checked on both ends, idempotent, self-links refused. |
 | Isolation | Every private row carries a `NOT NULL user_id`, and `OwnedRepository` cannot be constructed without an owner scope, so a cross-user read is a 404, not an IDOR. |
 | Admin console | Founder / platform_admin / support_admin roles over a reviewable permission matrix, TOTP **required** for every administrator, last-founder protection, MFA rotation, audited failed logins, founder-only break-glass access that records its reason. Administrators are created through single-use enrolment links, so the password and authenticator secret are chosen by the account holder. React screens for overview, users, administrators, audit log and security. |
@@ -391,6 +400,26 @@ other failure and lands in `failed` after five attempts. A real sender needs a
 suppression list fed by the provider's webhooks, and that is not built.
 
 ---
+
+## The worker, on a host that never runs one
+
+`python -m app.worker` is a loop: claim due jobs, run them, drain the outbox, sleep. A
+serverless function is frozen between requests, so on Vercel the same work is
+`POST /api/internal/tick`, which does exactly one pass, and a five-minute schedule calls
+it. Both require `ECHO_CRON_SECRET`:
+
+```bash
+curl -X POST https://your-host/api/internal/tick -H "Authorization: Bearer $ECHO_CRON_SECRET"
+# {"claimed": 2, "delivered": 2}
+```
+
+The reminder therefore arrives on the next tick, not the next second. That is the
+honest cost of not paying for an always-on process, and the reason the deploy notes say
+so instead of pretending the loop is still running.
+
+`POST /api/internal/migrate` runs `alembic upgrade head` from inside the deployment,
+which is how a managed Postgres gets its schema: it is not reachable from a laptop, and
+a cold start must not race another cold start into a migration.
 
 ## Design decisions worth knowing
 

@@ -7,6 +7,7 @@ import pytest
 
 from app.core.crypto import NullCipher
 from app.core.errors import PayloadTooLarge
+from app.services.document_storage import LocalStore, StorageError
 from app.services.documents import DocumentService
 
 PAYLOAD = b"Invoice 118 - Bright Foods - 40,000 naira - due in 14 days"
@@ -119,8 +120,13 @@ def test_at_rest_bytes_are_ciphertext(session_factory, tmp_path):
     assert b"naira" not in blobs
 
 
-def test_storage_key_cannot_escape_the_storage_directory(session_factory, tmp_path):
-    with session_factory() as session:
-        service = DocumentService(session, "owner-a", cipher=NullCipher(), storage_dir=tmp_path / "root")
-        with pytest.raises(PayloadTooLarge):
-            service._path("../../etc/passwd")
+def test_storage_key_cannot_escape_the_storage_directory(tmp_path):
+    """The guard lives in the store now, so it holds for every caller of the store."""
+    root = tmp_path / "root"
+    root.mkdir()
+    store = LocalStore(root)
+    with pytest.raises(StorageError):
+        store.path_for("../../etc/passwd")
+    with pytest.raises(StorageError):
+        store.put("../../escaped.txt", b"x")
+    assert not (tmp_path / "escaped.txt").exists()

@@ -42,14 +42,21 @@ class Mailer(Protocol):
 class LogMailer:
     """No provider: write the message to the log.
 
-    Deliberately loud at WARNING so a code is never silently swallowed, and
-    deliberately never chosen in production (see `build_mailer`).
+    Deliberately loud at WARNING so a code is never silently swallowed. In production it
+    only exists when someone set `ECHO_MAILER=log` on purpose (see `build_mailer`), and
+    then the line says so.
     """
 
     name = "log"
 
+    def __init__(self, *, explicit: bool = False) -> None:
+        self.explicit = explicit
+
     def send(self, message: EmailMessage) -> None:
-        logger.warning("email (not sent, no provider) to=%s subject=%s\n%s", message.to, message.subject, message.text)
+        reason = "ECHO_MAILER=log" if self.explicit else "no provider"
+        logger.warning(
+            "email (not sent, %s) to=%s subject=%s\n%s", reason, message.to, message.subject, message.text
+        )
 
 
 class ResendMailer:
@@ -125,6 +132,12 @@ def build_mailer() -> Mailer:
             base_url=settings.resend_base_url,
             timeout=settings.email_timeout_seconds,
         )
+    if settings.mailer == "log":
+        # An explicit choice, not a fallback: a deploy with no provider runs, and every
+        # message it would have sent is in the log. load_settings() refuses this in
+        # production while address verification is on, because a code nobody receives is
+        # a sign-up that cannot finish.
+        return LogMailer(explicit=True)
     if settings.is_production:
         # load_settings() already refuses this combination; belt and braces.
         raise RuntimeError("no mail provider configured in production")
@@ -134,4 +147,6 @@ def build_mailer() -> Mailer:
 def describe(mailer: Mailer) -> str:
     if isinstance(mailer, ResendMailer):
         return f"resend (from {mailer.sender})"
+    if settings.is_production:
+        return "none — ECHO_MAILER=log, so messages are written to the log and never sent"
     return "none — codes are logged, not delivered"

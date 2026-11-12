@@ -8,14 +8,17 @@ os.environ.setdefault("ECHO_USER_JWT_SECRET", "test-user-secret-0123456789abcdef
 os.environ.setdefault("ECHO_ADMIN_JWT_SECRET", "test-admin-secret-0123456789abcdef")
 
 import uuid
+from dataclasses import replace
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from app.core.mfa import generate_secret, totp_now
 from app.core.security import hash_password
 from app.db.models import AdminUser, Base
 from app.services.mailer import CapturingMailer
+from app.services.push import CapturingPusher
 from app.db.session import build_engine, build_session_factory
 from app.main import create_app
 
@@ -147,3 +150,35 @@ def create_person(client):
         return response.json()
 
     return _create
+
+
+# --- Web Push fixtures -------------------------------------------------------
+# Kept here rather than in one test module because more than one needs a subscribed
+# device and a fake transport: the push tests, and the scheduler test that proves a
+# tick delivers.
+@pytest.fixture()
+def pusher(app):
+    """Swap the transport for the duration of a test: nothing dials out."""
+    capture = CapturingPusher()
+    app.state.pusher = capture
+    return capture
+
+
+@pytest.fixture()
+def push_keys(monkeypatch):
+    """Pretend a VAPID keypair is configured, without touching the real env.
+
+    Settings are frozen, so the replacement is installed in the modules that read
+    them (`app.api.routes_push` for the public key endpoint, `app.services.push` for
+    the transport).
+    """
+    import app.api.routes_push as routes_push
+    import app.services.push as push_module
+    from app.scripts.vapid_keys import generate
+
+    # A real keypair, so the startup check on the pair runs exactly as in production.
+    public_key, private_key = generate()
+    adjusted = replace(settings, vapid_public_key=public_key, vapid_private_key=private_key)
+    monkeypatch.setattr(routes_push, "settings", adjusted)
+    monkeypatch.setattr(push_module, "settings", adjusted)
+    return adjusted

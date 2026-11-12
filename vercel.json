@@ -1,0 +1,102 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm --prefix web ci",
+  "buildCommand": "npm --prefix web run build",
+  "outputDirectory": "web/dist",
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "backend/**",
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/healthz",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/auth(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/me(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/stats(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/health(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/analytics(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/emergency(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/users(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "application/json"
+        }
+      ],
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/admins(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "application/json"
+        }
+      ],
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/audit(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "application/json"
+        }
+      ],
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/admin/security(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "application/json"
+        }
+      ],
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/internal/tick",
+      "schedule": "15 3 * * *"
+    }
+  ]
+}

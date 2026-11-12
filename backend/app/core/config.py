@@ -50,7 +50,18 @@ class Settings:
     password_iterations: int
     cors_origins: tuple[str, ...]
     sql_echo: bool
+    #: `null` keeps no pooled connections: the right answer for a function that is
+    #: frozen between requests, and for a Postgres that counts connections.
+    db_pool: str
     storage_dir: str
+    #: Encrypted documents live either on this machine (`local`) or in object storage
+    #: (`vercel-blob`). A serverless deploy must use the second: its filesystem is a
+    #: scratch directory that the next cold start does not share.
+    storage_backend: str
+    blob_read_write_token: str | None
+    blob_store_id: str | None
+    blob_download_host: str | None
+    blob_timeout_seconds: float
     max_upload_bytes: int
     #: Optional model provider. `None` means "answer extractive, extract with rules",
     #: which is a supported configuration, not a degraded one.
@@ -67,6 +78,10 @@ class Settings:
     resend_api_key: str | None
     resend_base_url: str
     email_from: str
+    #: `log` is the explicit "write the message to the log instead of sending it" mode.
+    #: Allowed in production only when address verification is off, so a deploy without
+    #: a provider still runs while saying plainly that nothing is delivered.
+    mailer: str | None
     email_timeout_seconds: float
     email_verification_required: bool
     email_code_ttl_seconds: int
@@ -90,6 +105,9 @@ class Settings:
     vapid_private_key: str | None
     vapid_subject: str
     push_timeout_seconds: float
+    #: Shared secret for the endpoints a scheduler calls (the reminder worker and the
+    #: migration runner). Absent means those endpoints refuse to run at all.
+    cron_secret: str | None
 
     @property
     def is_production(self) -> bool:
@@ -140,10 +158,27 @@ class Settings:
         return self.env.lower() in {"test", "testing"}
 
 
+def _normalise_database_url(url: str) -> str:
+    """Point a bare Postgres URL at the driver ECHO actually installs.
+
+    Neon, Supabase, Railway and every `postgres://` example on the internet hand you a
+    scheme without a driver, which SQLAlchemy reads as psycopg2. ECHO ships psycopg 3, so
+    the mismatch would surface as "No module named psycopg2" on the first query of a
+    deploy. Rewriting it here means the connection string a hosting provider gives you
+    works unedited, which is the whole point of a managed database.
+    """
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix) :]
+    return url
+
+
 def load_settings() -> Settings:
     settings = Settings(
         env=(_get("ECHO_ENV", "development") or "development").lower(),
-        database_url=_get("ECHO_DATABASE_URL", "sqlite+pysqlite:///./echo.db") or "",
+        database_url=_normalise_database_url(
+            _get("ECHO_DATABASE_URL", "sqlite+pysqlite:///./echo.db") or ""
+        ),
         user_jwt_secret=_get("ECHO_USER_JWT_SECRET", "dev-user-jwt-secret-change-me") or "",
         admin_jwt_secret=_get("ECHO_ADMIN_JWT_SECRET", "dev-admin-jwt-secret-change-me") or "",
         user_token_ttl_seconds=_get_int("ECHO_USER_TOKEN_TTL", 60 * 60 * 12),
@@ -159,7 +194,15 @@ def load_settings() -> Settings:
             if origin.strip()
         ),
         sql_echo=_get_bool("ECHO_SQL_ECHO", False),
+        # Vercel sets VERCEL=1 and freezes a function between requests, so a pooled
+        # connection is a connection nobody closes.
+        db_pool=(_get("ECHO_DB_POOL") or ("null" if _get("VERCEL") else "default")) or "default",
         storage_dir=_get("ECHO_STORAGE_DIR", "./storage") or "./storage",
+        storage_backend=(_get("ECHO_STORAGE_BACKEND", "local") or "local").lower(),
+        blob_read_write_token=_get("BLOB_READ_WRITE_TOKEN"),
+        blob_store_id=_get("BLOB_STORE_ID"),
+        blob_download_host=_get("ECHO_BLOB_DOWNLOAD_HOST"),
+        blob_timeout_seconds=_get_float("ECHO_BLOB_TIMEOUT", 20.0),
         max_upload_bytes=_get_int("ECHO_MAX_UPLOAD_BYTES", 10 * 1024 * 1024),
         llm_provider=(_get("ECHO_LLM_PROVIDER") or ("openai" if _get("ECHO_OPENAI_API_KEY") else None)),
         openai_api_key=_get("ECHO_OPENAI_API_KEY"),
@@ -173,6 +216,7 @@ def load_settings() -> Settings:
         resend_base_url=_get("ECHO_RESEND_BASE_URL", "https://api.resend.com") or "",
         # Resend only lets you send from a domain you have verified, or their test sender.
         email_from=_get("ECHO_EMAIL_FROM", "ECHO <onboarding@resend.dev>") or "",
+        mailer=(_get("ECHO_MAILER") or "").lower() or None,
         email_timeout_seconds=_get_float("ECHO_EMAIL_TIMEOUT", 10.0),
         email_verification_required=_get_bool("ECHO_EMAIL_VERIFICATION_REQUIRED", True),
         email_code_ttl_seconds=_get_int("ECHO_EMAIL_CODE_TTL", 300),
@@ -188,6 +232,7 @@ def load_settings() -> Settings:
         vapid_private_key=(_get("ECHO_VAPID_PRIVATE_KEY") or "").replace("\\n", "\n") or None,
         vapid_subject=_get("ECHO_VAPID_SUBJECT", "mailto:push@example.com") or "mailto:push@example.com",
         push_timeout_seconds=_get_float("ECHO_PUSH_TIMEOUT", 10.0),
+        cron_secret=_get("ECHO_CRON_SECRET"),
     )
     if settings.is_production:
         problems = []
@@ -205,6 +250,19 @@ def load_settings() -> Settings:
             problems.append("ECHO_DATA_KEY_PREVIOUS must not repeat the current ECHO_DATA_KEY")
         if settings.email_provider and not settings.resend_api_key:
             problems.append("ECHO_RESEND_API_KEY is required when ECHO_EMAIL_PROVIDER is set")
+        if settings.mailer and settings.mailer not in {"log", "resend"}:
+            problems.append("ECHO_MAILER must be 'log' or 'resend'")
+        if settings.is_production and settings.mailer == "log":
+            if settings.email_verification_required:
+                problems.append(
+                    "ECHO_MAILER=log cannot verify addresses: set "
+                    "ECHO_EMAIL_VERIFICATION_REQUIRED=false or configure a provider"
+                )
+        if not settings.email_enabled and not settings.mailer and settings.env == "production":
+            problems.append(
+                "a mail provider is required in production (set ECHO_RESEND_API_KEY, "
+                "or ECHO_MAILER=log to run without one and log the messages instead)"
+            )
         if settings.email_verification_required and not settings.resend_api_key:
             problems.append(
                 "ECHO_RESEND_API_KEY is required to verify addresses "
@@ -212,6 +270,17 @@ def load_settings() -> Settings:
             )
         if settings.email_code_pepper and len(settings.email_code_pepper) < 16:
             problems.append("ECHO_EMAIL_CODE_PEPPER must be at least 16 characters")
+        if settings.storage_backend not in {"local", "vercel-blob"}:
+            problems.append("ECHO_STORAGE_BACKEND must be 'local' or 'vercel-blob'")
+        if settings.storage_backend == "vercel-blob" and not settings.blob_read_write_token:
+            problems.append(
+                "BLOB_READ_WRITE_TOKEN is required when ECHO_STORAGE_BACKEND=vercel-blob"
+            )
+        if settings.storage_backend == "local" and _get("VERCEL") and not _get("ECHO_ALLOW_EPHEMERAL_STORAGE"):
+            problems.append(
+                "documents need durable storage on Vercel: set ECHO_STORAGE_BACKEND=vercel-blob "
+                "(or ECHO_ALLOW_EPHEMERAL_STORAGE=1 to accept that uploads vanish on the next cold start)"
+            )
         if not settings.storage_dir:
             problems.append("ECHO_STORAGE_DIR must be set (documents are stored encrypted on disk)")
         if problems:

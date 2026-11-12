@@ -4,11 +4,12 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import current_user, get_cipher, get_db, get_storage_dir
+from app.api.deps import current_user, get_cipher, get_db, get_document_store
 from app.core.crypto import AnyCipher
 from app.core.errors import NotFound
 from app.db.models import User
 from app.schemas import DocumentList, DocumentRead
+from app.services.document_storage import DocumentStore
 from app.services.documents import DocumentService
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -21,9 +22,9 @@ def list_documents(
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
     cipher: AnyCipher = Depends(get_cipher),
-    storage_dir: str = Depends(get_storage_dir),
+    store: DocumentStore = Depends(get_document_store),
 ) -> DocumentList:
-    return DocumentService(db, user.id, cipher=cipher, storage_dir=storage_dir).list(limit=limit, offset=offset)
+    return DocumentService(db, user.id, cipher=cipher, store=store).list(limit=limit, offset=offset)
 
 
 @router.post("", response_model=DocumentRead, status_code=201)
@@ -33,9 +34,9 @@ async def upload_document(
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
     cipher: AnyCipher = Depends(get_cipher),
-    storage_dir: str = Depends(get_storage_dir),
+    store: DocumentStore = Depends(get_document_store),
 ) -> DocumentRead:
-    service = DocumentService(db, user.id, cipher=cipher, storage_dir=storage_dir)
+    service = DocumentService(db, user.id, cipher=cipher, store=store)
     # Read one byte past the limit so oversize uploads are rejected without buffering
     # arbitrary amounts of memory.
     data = await file.read(service.max_bytes + 1)
@@ -53,9 +54,9 @@ def download_document(
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
     cipher: AnyCipher = Depends(get_cipher),
-    storage_dir: str = Depends(get_storage_dir),
+    store: DocumentStore = Depends(get_document_store),
 ) -> Response:
-    service = DocumentService(db, user.id, cipher=cipher, storage_dir=storage_dir)
+    service = DocumentService(db, user.id, cipher=cipher, store=store)
     try:
         attachment, data = service.open(document_id)
     except FileNotFoundError as exc:
@@ -74,7 +75,7 @@ def delete_document(
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
     cipher: AnyCipher = Depends(get_cipher),
-    storage_dir: str = Depends(get_storage_dir),
+    store: DocumentStore = Depends(get_document_store),
 ) -> Response:
-    DocumentService(db, user.id, cipher=cipher, storage_dir=storage_dir).delete(document_id)
+    DocumentService(db, user.id, cipher=cipher, store=store).delete(document_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

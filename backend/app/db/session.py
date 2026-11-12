@@ -6,7 +6,7 @@ from contextlib import contextmanager
 
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool, StaticPool
 
 from app.core.config import settings
 from app.db.models import Base
@@ -19,6 +19,12 @@ def build_engine(url: str | None = None, *, echo: bool | None = None) -> Engine:
         kwargs["connect_args"] = {"check_same_thread": False}
         if ":memory:" in url:
             kwargs["poolclass"] = StaticPool
+    elif settings.db_pool == "null":
+        # A serverless function is frozen between requests, so a pooled connection is a
+        # connection nobody closes. Postgres counts connections; a function that holds
+        # them idle exhausts the database rather than serving traffic.
+        kwargs["poolclass"] = NullPool
+        kwargs["pool_pre_ping"] = True
     engine = create_engine(url, **kwargs)
     if url.startswith("sqlite"):
 

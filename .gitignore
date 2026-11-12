@@ -35,3 +35,5 @@ Thumbs.db
 
 # encrypted document storage (local dev data)
 backend/storage/
+.vercel
+.env*

@@ -1,0 +1,24 @@
+# What Vercel installs for api/index.py.
+#
+# Vercel reads requirements.txt from the project root, and the backend keeps its own
+# next to the code it describes. This file is the deploy copy, and tests/test_deploy_files.py
+# fails if the two ever disagree: a drift here is a production import error, not a test
+# failure, which is the wrong place to find out.
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+SQLAlchemy>=2.0.30
+pydantic>=2.7
+PyJWT>=2.8
+cryptography>=42.0
+# production database driver
+psycopg[binary]>=3.2
+# Web Push: notification encryption (AES-GCM) and the VAPID signature
+pywebpush>=2.0
+# migrations (production bootstrap: alembic upgrade head)
+alembic>=1.13
+# test tooling
+pytest>=8.0
+httpx>=0.27
+python-multipart>=0.0.9
+qrcode>=8.0
