@@ -1,0 +1,6 @@
+.git
+backend/.venv
+backend/echo.db*
+web/node_modules
+web/dist
+design
