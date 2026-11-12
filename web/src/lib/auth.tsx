@@ -7,7 +7,12 @@ interface AuthValue {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithCode: (email: string, password: string, code: string) => Promise<void>;
+  /** Register, which sends the verification code. No session yet. */
   signUp: (email: string, password: string) => Promise<void>;
+  /** Spend the code from the email and open the vault. */
+  verifyEmail: (email: string, code: string) => Promise<void>;
+  setEmailOtp: (enabled: boolean) => Promise<void>;
   signOut: () => void;
 }
 
@@ -46,12 +51,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(current);
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    await api.register(email, password);
-    const token = await api.signIn(email, password);
+  const signInWithCode = useCallback(async (email: string, password: string, code: string) => {
+    const token = await api.signInWithCode(email, password, code);
     setToken(token);
-    const current = await api.me();
-    setUser(current);
+    setUser(await api.me());
+  }, []);
+
+  const signUp = useCallback(async (email: string, password: string) => {
+    // Registration proves nothing on its own: the address still has to answer with
+    // the six digits ECHO just emailed it.
+    await api.register(email, password);
+  }, []);
+
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    const token = await api.confirmVerification(email, code);
+    setToken(token);
+    setUser(await api.me());
+  }, []);
+
+  const setEmailOtp = useCallback(async (enabled: boolean) => {
+    setUser(await api.setAuthPreferences({ email_otp_enabled: enabled }));
   }, []);
 
   const signOut = useCallback(() => {
@@ -60,8 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthValue>(
-    () => ({ user, loading, signIn, signUp, signOut }),
-    [user, loading, signIn, signUp, signOut],
+    () => ({ user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, signOut }),
+    [user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

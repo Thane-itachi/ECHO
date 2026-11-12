@@ -60,6 +60,23 @@ class Settings:
     llm_model: str
     llm_timeout_seconds: float
     llm_extraction: bool
+    #: Where sign-in and verification codes are delivered. Resend is the only
+    #: provider wired today; with no key the codes are logged instead of sent, which
+    #: is fine for local work and refused in production.
+    email_provider: str | None
+    resend_api_key: str | None
+    resend_base_url: str
+    email_from: str
+    email_timeout_seconds: float
+    email_verification_required: bool
+    email_code_ttl_seconds: int
+    email_code_max_attempts: int
+    email_code_cooldown_seconds: int
+    email_code_hourly_per_address: int
+    email_code_hourly_per_ip: int
+    #: Pepper for the stored code digests. A bare SHA of a six-digit code is not a
+    #: hash, it is a lookup table, so the digest is keyed.
+    email_code_pepper: str | None
 
     @property
     def is_production(self) -> bool:
@@ -85,6 +102,20 @@ class Settings:
         "did the model actually turn on?" is answerable without guessing.
         """
         return self.llm_provider == "openai" and bool(self.openai_api_key)
+
+    @property
+    def email_enabled(self) -> bool:
+        """True only when a provider is named *and* it has a key."""
+        return self.email_provider == "resend" and bool(self.resend_api_key)
+
+    @property
+    def email_dev_echo(self) -> bool:
+        """Development convenience: hand the code back in the API response.
+
+        Never true in production, and never true once a real provider is configured:
+        otherwise the API would be the delivery channel and the mailbox decoration.
+        """
+        return not self.is_production and not self.email_enabled
 
     @property
     def is_test(self) -> bool:
@@ -119,6 +150,19 @@ def load_settings() -> Settings:
         llm_model=_get("ECHO_LLM_MODEL", "gpt-4o-mini") or "",
         llm_timeout_seconds=_get_float("ECHO_LLM_TIMEOUT", 20.0),
         llm_extraction=_get_bool("ECHO_LLM_EXTRACTION", True),
+        email_provider=_get("ECHO_EMAIL_PROVIDER") or ("resend" if _get("ECHO_RESEND_API_KEY") else None),
+        resend_api_key=_get("ECHO_RESEND_API_KEY"),
+        resend_base_url=_get("ECHO_RESEND_BASE_URL", "https://api.resend.com") or "",
+        # Resend only lets you send from a domain you have verified, or their test sender.
+        email_from=_get("ECHO_EMAIL_FROM", "ECHO <onboarding@resend.dev>") or "",
+        email_timeout_seconds=_get_float("ECHO_EMAIL_TIMEOUT", 10.0),
+        email_verification_required=_get_bool("ECHO_EMAIL_VERIFICATION_REQUIRED", True),
+        email_code_ttl_seconds=_get_int("ECHO_EMAIL_CODE_TTL", 300),
+        email_code_max_attempts=_get_int("ECHO_EMAIL_CODE_MAX_ATTEMPTS", 5),
+        email_code_cooldown_seconds=_get_int("ECHO_EMAIL_CODE_COOLDOWN", 60),
+        email_code_hourly_per_address=_get_int("ECHO_EMAIL_CODE_HOURLY_PER_ADDRESS", 5),
+        email_code_hourly_per_ip=_get_int("ECHO_EMAIL_CODE_HOURLY_PER_IP", 20),
+        email_code_pepper=_get("ECHO_EMAIL_CODE_PEPPER"),
     )
     if settings.is_production:
         problems = []
@@ -134,6 +178,15 @@ def load_settings() -> Settings:
             problems.append("ECHO_OPENAI_API_KEY is required when ECHO_LLM_PROVIDER is set")
         if settings.data_key and settings.data_key in settings.data_key_previous:
             problems.append("ECHO_DATA_KEY_PREVIOUS must not repeat the current ECHO_DATA_KEY")
+        if settings.email_provider and not settings.resend_api_key:
+            problems.append("ECHO_RESEND_API_KEY is required when ECHO_EMAIL_PROVIDER is set")
+        if settings.email_verification_required and not settings.resend_api_key:
+            problems.append(
+                "ECHO_RESEND_API_KEY is required to verify addresses "
+                "(or set ECHO_EMAIL_VERIFICATION_REQUIRED=false to skip verification)"
+            )
+        if settings.email_code_pepper and len(settings.email_code_pepper) < 16:
+            problems.append("ECHO_EMAIL_CODE_PEPPER must be at least 16 characters")
         if not settings.storage_dir:
             problems.append("ECHO_STORAGE_DIR must be set (documents are stored encrypted on disk)")
         if problems:

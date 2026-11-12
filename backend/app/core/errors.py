@@ -15,9 +15,17 @@ class EchoError(Exception):
     status_code = 400
     code = "bad_request"
 
-    def __init__(self, message: str, *, code: str | None = None, status_code: int | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str | None = None,
+        status_code: int | None = None,
+        details: object | None = None,
+    ) -> None:
         super().__init__(message)
         self.message = message
+        self.details = details
         if code:
             self.code = code
         if status_code:
@@ -65,7 +73,11 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(EchoError)
     async def _echo_error(_: Request, exc: EchoError) -> JSONResponse:
         headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
-        return JSONResponse(_body(exc.code, exc.message), status_code=exc.status_code, headers=headers)
+        return JSONResponse(
+            _body(exc.code, exc.message, jsonable_encoder(exc.details)),
+            status_code=exc.status_code,
+            headers=headers,
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:

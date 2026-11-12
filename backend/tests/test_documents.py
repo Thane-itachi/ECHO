@@ -95,18 +95,17 @@ def test_at_rest_bytes_are_ciphertext(session_factory, tmp_path):
 
     from app.core.crypto import ContentCipher
     from app.main import create_app
+    from app.services.mailer import CapturingMailer
+    from tests.support import sign_in
 
     app = create_app(session_factory=session_factory, cipher=ContentCipher(os.urandom(32)))
+    app.state.mailer = CapturingMailer()
     storage = tmp_path / "enc-storage"
     storage.mkdir()
     app.state.storage_dir = str(storage)
 
     with TestClient(app) as client:
-        client.post("/api/auth/register", json={"email": "doc@example.com", "password": "correct-horse-battery"})
-        token = client.post(
-            "/api/auth/token", json={"email": "doc@example.com", "password": "correct-horse-battery"}
-        ).json()["access_token"]
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = sign_in(client, email="doc@example.com")
         created = client.post(
             "/api/documents", files={"file": ("invoice.txt", PAYLOAD, "text/plain")}, headers=headers
         )

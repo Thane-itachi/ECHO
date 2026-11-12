@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.crypto import ContentCipher, NullCipher
 from app.core.errors import Unauthorized
-from app.core.security import USER_AUDIENCE, TokenError, decode_access_token
+from app.core.security import USER_AUDIENCE, TokenError, decode_access_token, password_version
 from app.db.models import User
 
 bearer = HTTPBearer(auto_error=False, description="Bearer access token")
@@ -60,5 +60,15 @@ def current_user(
         raise Unauthorized("invalid or expired token") from exc
     user = db.get(User, payload["sub"])
     if user is None or not user.is_active:
+        raise Unauthorized("invalid or expired token")
+    stamped = payload.get("pv")
+    if stamped is None:
+        # Tokens minted before fingerprints existed: fall back to the issue time of the
+        # last credential change.
+        changed = user.credentials_changed_at
+        if changed is not None and int(payload.get("iat") or 0) <= int(changed.timestamp()):
+            raise Unauthorized("invalid or expired token")
+    elif stamped != password_version(user.password_hash):
+        # The password changed after this token was minted: the session is over.
         raise Unauthorized("invalid or expired token")
     return user

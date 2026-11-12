@@ -75,7 +75,50 @@ class User(Base, Timestamped):
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    #: Legacy column, kept so old rows and admin exports keep their meaning.
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    #: Proven ownership of the address, by six-digit code. Accounts created before
+    #: verification existed are grandfathered as verified by the migration.
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    #: Opt-in second factor for ordinary users: a code by email at every sign-in.
+    #: Administrators never use this; their second factor is TOTP and is mandatory.
+    email_otp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    #: Set whenever the password changes, so tokens minted before it stop working.
+    credentials_changed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+EMAIL_CODE_PURPOSES: tuple[str, ...] = ("verify_email", "login_otp", "password_reset")
+
+
+class EmailCode(Base):
+    """A six-digit code that proves control of an address.
+
+    Only a keyed digest is stored. A plain SHA of six digits is a lookup table, so the
+    digest is an HMAC over (address, purpose, code) with a server-side pepper: a
+    dumped table cannot be reversed by hashing a million candidates.
+
+    One row per issued code, which is also how rate limiting is counted: rows for an
+    address or an IP in the last hour. No separate counter to drift out of sync.
+    """
+
+    __tablename__ = "email_codes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    email: Mapped[str] = mapped_column(String(320), nullable=False, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    purpose: Mapped[str] = mapped_column(String(32), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    request_ip: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False, index=True)
+
+    __table_args__ = (
+        CheckConstraint(f"purpose IN {_in_list(EMAIL_CODE_PURPOSES)}", name="ck_email_code_purpose"),
+        # The hot query is "newest live code for this address and purpose".
+        Index("ix_email_codes_lookup", "email", "purpose", "created_at"),
+    )
 
 
 class AdminUser(Base, Timestamped):

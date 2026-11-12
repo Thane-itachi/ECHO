@@ -15,8 +15,22 @@ const NAV = [
 ];
 
 export default function Layout() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, setEmailOtp } = useAuth();
   const [pending, setPending] = useState<number | null>(null);
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+
+  async function toggleSignInCode(enabled: boolean) {
+    setOtpBusy(true);
+    setOtpError(null);
+    try {
+      await setEmailOtp(enabled);
+    } catch {
+      setOtpError('Could not change that. Confirm your email address first.');
+    } finally {
+      setOtpBusy(false);
+    }
+  }
 
   useEffect(() => {
     let alive = true;
@@ -70,6 +84,19 @@ export default function Layout() {
           <button type="button" className="ghost-button" onClick={signOut}>
             Sign out
           </button>
+          <label className="sidebar-toggle">
+            <input
+              type="checkbox"
+              checked={user?.email_otp_enabled ?? false}
+              disabled={otpBusy || !user?.email_verified}
+              onChange={(event) => void toggleSignInCode(event.target.checked)}
+            />
+            <span>
+              Email me a code at sign-in
+              <small>Your password, then six digits. Off by default.</small>
+            </span>
+          </label>
+          {otpError ? <p className="sidebar-note">{otpError}</p> : null}
           <p className="sidebar-note">
             Everything here is sealed with your own key.
           </p>

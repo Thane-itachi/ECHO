@@ -630,6 +630,35 @@ button {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.sidebar-toggle {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(242, 237, 227, 0.16);
+  border-radius: 2px;
+  color: var(--paper-3);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.sidebar-toggle input {
+  margin-top: 0.15rem;
+  accent-color: var(--leather);
+}
+
+.sidebar-toggle small {
+  display: block;
+  margin-top: 0.15rem;
+  color: rgba(242, 237, 227, 0.55);
+  font-size: 0.72rem;
+}
+
+.sidebar-toggle input:disabled + span {
+  opacity: 0.55;
+}
+
 .sidebar-note {
   margin-top: 0.5rem;
   font-family: var(--display);
@@ -1382,6 +1411,81 @@ button {
 
 .auth-card .primary-button {
   width: 100%;
+}
+
+/* ---- codes by email: the sign-in card grows a second step ---- */
+.auth-step-kicker {
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-display);
+  font-size: 1.32rem;
+  color: var(--ink);
+}
+
+.auth-notice {
+  margin-bottom: 0.9rem;
+  padding: 0.55rem 0.75rem;
+  border-left: 2px solid var(--forest);
+  background: var(--forest-wash);
+  color: #1f3d34;
+  font-size: 0.86rem;
+}
+
+.auth-dev {
+  margin-bottom: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px dashed var(--rule-2);
+  background: var(--paper-3);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.auth-fine {
+  margin-top: 0.55rem;
+  color: var(--ink-3);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.auth-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  justify-content: space-between;
+  margin-top: 0.85rem;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--leather);
+  font-size: 0.82rem;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.link-button:hover:not(:disabled) {
+  color: var(--leather-deep);
+}
+
+.link-button:disabled {
+  color: var(--ink-4);
+  text-decoration: none;
+  cursor: default;
+}
+
+.code-input {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 1.45rem;
+  letter-spacing: 0.55em;
+  text-align: center;
+  text-indent: 0.55em;
 }
 
 /* ------------------------------------------------------- admin enrolment page */

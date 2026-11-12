@@ -54,6 +54,16 @@ def verify_password(password: str, stored: str) -> bool:
     return hmac.compare_digest(derived, expected)
 
 
+def password_version(password_hash: str) -> str:
+    """A short fingerprint of the current password hash.
+
+    Stamped into every user token and checked on each request, so a password reset
+    ends older sessions *exactly*, including a reset in the same second as the
+    sign-in. Comparing issue times would leave a one-second hole.
+    """
+    return hashlib.sha256(password_hash.encode()).hexdigest()[:16]
+
+
 # Pre-computed so a login for an unknown email costs the same as a wrong password.
 DUMMY_HASH = hash_password("echo-timing-equalizer")
 

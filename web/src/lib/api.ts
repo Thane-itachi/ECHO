@@ -26,7 +26,17 @@ export interface User {
   id: string;
   email: string;
   is_active: boolean;
+  email_verified: boolean;
+  email_otp_enabled: boolean;
   created_at: string;
+  /** Local development only, with no mail provider: the code just emailed. */
+  dev_code?: string | null;
+}
+
+export interface CodeReceipt {
+  status: string;
+  /** Present only in local development with no mail provider configured. */
+  dev_code?: string | null;
 }
 
 export interface Memory {
@@ -81,12 +91,14 @@ export interface Reminder {
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
+  readonly details: unknown;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, details?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -164,8 +176,9 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    const code = (payload as { error?: { code?: string } } | null)?.error?.code ?? 'error';
-    throw new ApiError(response.status, code, describeError(payload, response.status));
+    const envelope = (payload as { error?: { code?: string; details?: unknown } } | null)?.error;
+    const code = envelope?.code ?? 'error';
+    throw new ApiError(response.status, code, describeError(payload, response.status), envelope?.details);
   }
   return payload as T;
 }
@@ -196,6 +209,39 @@ export async function signIn(email: string, password: string): Promise<string> {
 
 export function me(): Promise<User> {
   return request<User>('/auth/me');
+}
+
+export async function signInWithCode(email: string, password: string, code: string): Promise<string> {
+  const result = await request<{ access_token: string }>('/auth/token/code', {
+    method: 'POST',
+    body: { email, password, code },
+  });
+  return result.access_token;
+}
+
+/** Ask for a verification code. The answer never says whether the address exists. */
+export function sendVerificationCode(email: string): Promise<CodeReceipt> {
+  return request<CodeReceipt>('/auth/verification/send', { method: 'POST', body: { email } });
+}
+
+export async function confirmVerification(email: string, code: string): Promise<string> {
+  const result = await request<{ access_token: string }>('/auth/verification/confirm', {
+    method: 'POST',
+    body: { email, code },
+  });
+  return result.access_token;
+}
+
+export function forgotPassword(email: string): Promise<CodeReceipt> {
+  return request<CodeReceipt>('/auth/password/forgot', { method: 'POST', body: { email } });
+}
+
+export function resetPassword(email: string, code: string, password: string): Promise<CodeReceipt> {
+  return request<CodeReceipt>('/auth/password/reset', { method: 'POST', body: { email, code, password } });
+}
+
+export function setAuthPreferences(input: { email_otp_enabled: boolean }): Promise<User> {
+  return request<User>('/auth/preferences', { method: 'PATCH', body: input });
 }
 
 /* ------------------------------------------------------------- memories ---- */

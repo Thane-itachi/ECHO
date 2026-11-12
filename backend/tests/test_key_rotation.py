@@ -19,6 +19,8 @@ from app.core.mfa import generate_secret, totp_now
 from app.core.security import hash_password
 from app.db.models import AdminUser, Job, Memory
 from app.main import create_app
+from app.services.mailer import CapturingMailer
+from tests.support import sign_in
 from app.scripts.rotate_data_key import rotate, survey
 
 USER_PASSWORD = "correct-horse-battery"
@@ -36,6 +38,7 @@ def _key() -> bytes:
 
 def _open(session_factory, cipher: ContentCipher, storage_dir):
     app = create_app(session_factory=session_factory, cipher=cipher)
+    app.state.mailer = CapturingMailer()
     app.state.storage_dir = str(storage_dir)
     return TestClient(app)
 
@@ -44,17 +47,7 @@ def _seed(session_factory, cipher: ContentCipher, storage_dir) -> dict:
     """Everything ECHO encrypts, written under one key."""
     secret = generate_secret()
     with _open(session_factory, cipher, storage_dir) as client:
-        assert (
-            client.post(
-                "/api/auth/register",
-                json={"email": "rot@example.com", "password": USER_PASSWORD},
-            ).status_code
-            == 201
-        )
-        token = client.post(
-            "/api/auth/token", json={"email": "rot@example.com", "password": USER_PASSWORD}
-        ).json()["access_token"]
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = sign_in(client, email="rot@example.com", password=USER_PASSWORD)
 
         memory = client.post(
             "/api/memories", json={"title": MEMORY_TITLE, "content": MEMORY_CONTENT}, headers=headers

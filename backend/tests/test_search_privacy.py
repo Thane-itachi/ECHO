@@ -15,6 +15,8 @@ from sqlalchemy import select
 from app.core.crypto import ContentCipher
 from app.db.models import Memory, Person
 from app.main import create_app
+from app.services.mailer import CapturingMailer
+from tests.support import sign_in
 
 TITLE = "Boiler repair promised for Friday"
 CONTENT = "Ngozi said a plumber would come Friday between 9 and 11 to look at the pressure valve."
@@ -22,7 +24,9 @@ CONTENT = "Ngozi said a plumber would come Friday between 9 and 11 to look at th
 
 @pytest.fixture()
 def enc_app(session_factory):
-    return create_app(session_factory=session_factory, cipher=ContentCipher(os.urandom(32)))
+    app = create_app(session_factory=session_factory, cipher=ContentCipher(os.urandom(32)))
+    app.state.mailer = CapturingMailer()
+    return app
 
 
 @pytest.fixture()
@@ -32,9 +36,7 @@ def enc_client(enc_app):
 
 
 def _user(client, email="enc@example.com", password="correct-horse-battery"):
-    client.post("/api/auth/register", json={"email": email, "password": password})
-    token = client.post("/api/auth/token", json={"email": email, "password": password}).json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    return sign_in(client, email=email, password=password)
 
 
 def test_search_matches_words_and_prefixes(enc_client):

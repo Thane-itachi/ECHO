@@ -11,6 +11,8 @@ from sqlalchemy import select
 from app.core.crypto import CipherError, ContentCipher, NullCipher, new_data_key
 from app.db.models import Memory
 from app.main import create_app
+from app.services.mailer import CapturingMailer
+from tests.support import sign_in
 
 SECRET_TEXT = "the safe combination is 44-19-07"
 
@@ -18,19 +20,14 @@ SECRET_TEXT = "the safe combination is 44-19-07"
 @pytest.fixture()
 def encrypted_client(session_factory):
     cipher = ContentCipher(base64.urlsafe_b64decode(new_data_key()))
-    with TestClient(create_app(session_factory=session_factory, cipher=cipher)) as client:
+    app = create_app(session_factory=session_factory, cipher=cipher)
+    app.state.mailer = CapturingMailer()
+    with TestClient(app) as client:
         yield client
 
 
 def test_content_is_ciphertext_in_the_database(encrypted_client, session_factory):
-    registered = encrypted_client.post(
-        "/api/auth/register", json={"email": "enc@example.com", "password": "correct-horse-battery"}
-    )
-    token = encrypted_client.post(
-        "/api/auth/token", json={"email": "enc@example.com", "password": "correct-horse-battery"}
-    ).json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    assert registered.status_code == 201
+    headers = sign_in(encrypted_client, email="enc@example.com")
 
     created = encrypted_client.post(
         "/api/memories", json={"title": "Safe code", "content": SECRET_TEXT}, headers=headers
@@ -54,11 +51,7 @@ def test_content_is_ciphertext_in_the_database(encrypted_client, session_factory
 
 
 def test_search_still_works_over_encrypted_rows(encrypted_client):
-    encrypted_client.post("/api/auth/register", json={"email": "s@example.com", "password": "correct-horse-battery"})
-    token = encrypted_client.post(
-        "/api/auth/token", json={"email": "s@example.com", "password": "correct-horse-battery"}
-    ).json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = sign_in(encrypted_client, email="s@example.com")
     encrypted_client.post("/api/memories", json={"title": "Safe code", "content": SECRET_TEXT}, headers=headers)
 
     hits = encrypted_client.get("/api/memories", params={"q": "combination"}, headers=headers).json()

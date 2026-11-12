@@ -86,7 +86,63 @@ class UserRead(BaseModel):
     id: str
     email: str
     is_active: bool
+    email_verified: bool
+    email_otp_enabled: bool
     created_at: datetime
+    #: Development only, and only with no mail provider configured: the code comes back
+    #: so the flow can be walked without a mailbox. Production never sets it.
+    dev_code: str | None = None
+
+
+class EmailCodeRequest(StrictModel):
+    """Ask for a code. The answer never says whether the address has an account."""
+
+    email: str = Field(min_length=3, max_length=320)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        if not _EMAIL_RE.match(value.strip().lower()):
+            raise ValueError("must be a valid email address")
+        return value.strip().lower()
+
+
+class CodeSubmission(StrictModel):
+    email: str = Field(min_length=3, max_length=320)
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class PasswordResetRequest(CodeSubmission):
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+
+    @field_validator("password")
+    @classmethod
+    def _password(cls, value: str) -> str:
+        if value.lower() in _WEAK_PASSWORDS:
+            raise ValueError("choose a password that is not on the obvious list")
+        return value
+
+
+class LoginWithCodeRequest(LoginRequest):
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class AuthPreferences(StrictModel):
+    """Only the flags a user may set for themselves."""
+
+    email_otp_enabled: bool
+
+
+class StatusResponse(BaseModel):
+    status: str
+    #: True only in development with no mail provider: the code comes back in the
+    #: response so the flow can be exercised without a mailbox. Never set in prod.
+    dev_code: str | None = None
 
 
 # ------------------------------------------------------------------- memories

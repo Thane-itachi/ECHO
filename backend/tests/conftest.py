@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from app.core.mfa import generate_secret, totp_now
 from app.core.security import hash_password
 from app.db.models import AdminUser, Base
+from app.services.mailer import CapturingMailer
 from app.db.session import build_engine, build_session_factory
 from app.main import create_app
 
@@ -48,6 +49,14 @@ def storage_dir(app, tmp_path):
     return directory
 
 
+@pytest.fixture(autouse=True)
+def mailer(app):
+    """Every test app sends mail into memory, so a test can read the six digits."""
+    capture = CapturingMailer()
+    app.state.mailer = capture
+    return capture
+
+
 @pytest.fixture()
 def client(app):
     with TestClient(app) as test_client:
@@ -55,15 +64,18 @@ def client(app):
 
 
 @pytest.fixture()
-def make_user(client):
+def make_user(client, mailer):
     def _make(email: str | None = None, password: str = VALID_PASSWORD) -> dict:
         email = email or f"user-{uuid.uuid4().hex[:10]}@example.com"
         registered = client.post("/api/auth/register", json={"email": email, "password": password})
         assert registered.status_code == 201, registered.text
         body = registered.json()
-        token_response = client.post("/api/auth/token", json={"email": email, "password": password})
-        assert token_response.status_code == 200, token_response.text
-        token = token_response.json()["access_token"]
+        # Registration proves nothing until the address is confirmed with its code.
+        confirmed = client.post(
+            "/api/auth/verification/confirm", json={"email": email, "code": mailer.code_for(email)}
+        )
+        assert confirmed.status_code == 200, confirmed.text
+        token = confirmed.json()["access_token"]
         return {
             "id": body["id"],
             "email": email,

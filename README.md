@@ -8,7 +8,7 @@ plain language. It is a **web app**: a FastAPI backend and a React/TypeScript
 frontend, plus an admin console with its own authentication.
 
 Status: the features in `docs/`-level scope are implemented, encrypted, tested and
-running. `108` backend tests pass. What remains is genuinely generative intelligence
+running. `158` backend tests pass. What remains is genuinely generative intelligence
 (an LLM over retrieved memories) and a few production polish items, listed honestly
 under [What is not done](#what-is-not-done).
 
@@ -19,6 +19,7 @@ under [What is not done](#what-is-not-done).
 | Area | Detail |
 |---|---|
 | Accounts | Email + password (PBKDF2-SHA256), JWT access tokens. Identical failure response for unknown email and wrong password. |
+| Email codes | Six digit codes by email for one of three jobs: confirm a new address, finish a sign-in (optional per account), reset a password. Only a keyed digest is stored. See [Signing in, verifying, and resetting](#signing-in-verifying-and-resetting). |
 | Memory Vault | Create, read, update, archive/restore, delete, filter by category, search, `include_archived`. |
 | Content encryption | Titles **and** bodies are encrypted at rest with a per-user key (HKDF from the master key). Nothing readable is stored for a memory. |
 | Private search | Search runs on a keyed blind index (HMAC word tokens plus 3- and 4-character prefixes). Word and prefix matching work; no plaintext word list exists to steal. |
@@ -42,7 +43,8 @@ Stated plainly, because a roadmap that hides this is a sales document:
   [Optional model provider](#optional-model-provider-openai)). What is not done is
   multi-provider support: only the OpenAI wire protocol is implemented, which covers
   OpenAI, Azure-style gateways, vLLM, LM Studio and Ollama.
-- **Reminder delivery stops at the outbox.** `app/scripts/drain_outbox.py` logs what
+- **Reminder delivery stops at the outbox.** The mailer that sends email codes can carry
+  reminders too, so what is missing is the template and the opt-out, not the transport. `app/scripts/drain_outbox.py` logs what
   would be sent. Wiring an email or push provider is one function (`deliver`).
 - **Search is blind-index based**, so it supports terms and prefixes, not fuzzy
   matching or embeddings. PostgreSQL `pg_trgm`/`pgvector` is the upgrade path.
@@ -59,7 +61,8 @@ backend/            FastAPI + SQLAlchemy 2.0 API
     db/             models, session
     repositories/   OwnedRepository + memory/person/proposal/reminder/job/relationship repos
     api/            routers: auth, memories (+links), people, proposals, reminders, ask, captures, documents
-    services/       memories, proposals, reminders, ask, captures, extraction, documents, jobs
+    services/       memories, proposals, reminders, ask, captures, extraction, documents,
+                    jobs, email_codes, mailer
     admin/          separate admin identity, roles, permissions, routes, service
     worker.py       durable job runner (reminder.notify, memory.extract)
   migrations/       Alembic baseline
@@ -184,6 +187,47 @@ administrators' sealed TOTP seeds. It is safe to re-run: each value is decrypted
 plaintext and re-encrypted under the current key, never encrypted twice. If a value
 cannot be read with the configured keys, the run names the row and stops instead of
 overwriting it.
+
+## Signing in, verifying, and resetting
+
+Regular accounts use a password plus a six digit code by email. Administrators are
+separate people in a separate table and keep their authenticator app: no email code
+can ever stand in for an administrator's TOTP.
+
+| | Regular user | Founder / platform / support admin |
+|---|---|---|
+| Sign up | email + password + emailed code | enrolment link, then authenticator app |
+| Sign in | email + password | email + password + TOTP |
+| Optional second step | emailed code at every sign-in | not applicable (TOTP is mandatory) |
+| Password reset | emailed code | re-issue an enrolment link |
+
+The rules the code service enforces, all covered by tests:
+
+- six digits, cryptographically random (`secrets`), five minute life, single use;
+- five wrong guesses and the code is dead, even if the sixth guess is right;
+- only a keyed digest is stored: `HMAC-SHA256(pepper, email | purpose | code)`, so the
+  table cannot be turned back into codes, and the same guess hashes differently per
+  address;
+- a new code retires the previous one for that address and purpose;
+- sixty seconds between sends, five codes per address per hour, twenty per IP per hour;
+- asking for a code answers identically for known and unknown addresses (except in
+  local development, where the code is handed back because there is no mailbox);
+- signing in is refused until the address is confirmed, and a reset changes the
+  password, marks the address verified, and ends sessions issued before it.
+
+That last one is exact rather than approximate: every user token carries a fingerprint
+of the current password hash, so a reset invalidates older tokens immediately, even one
+minted in the same second.
+
+```bash
+# development: no provider needed, codes appear in the API log (and in the UI)
+bash scripts/dev.sh
+
+# production: set the provider, then ECHO refuses to start without it
+ECHO_ENV=production
+ECHO_RESEND_API_KEY=re_...
+ECHO_EMAIL_FROM='ECHO <codes@yourdomain.com>'
+```
 
 ## Optional model provider (OpenAI)
 
