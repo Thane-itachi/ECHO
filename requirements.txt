@@ -22,3 +22,5 @@ pytest>=8.0
 httpx>=0.27
 python-multipart>=0.0.9
 qrcode>=8.0
+# QR codes at admin enrolment: qrcode needs an image backend, and Pillow is the default one.
+Pillow>=10.0
