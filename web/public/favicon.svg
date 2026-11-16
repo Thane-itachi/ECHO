@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
   <defs>
     <linearGradient id="plate" x1="0.1" y1="0" x2="0.75" y2="1">
-      <stop offset="0" stop-color="#8c4a2b"/>
-      <stop offset="1" stop-color="#743a20"/>
+      <stop offset="0" stop-color="#2f6bb0"/>
+      <stop offset="1" stop-color="#1d4a80"/>
     </linearGradient>
   </defs>
   <rect width="48" height="48" rx="11.5" fill="url(#plate)"/>
   <rect x="4.2" y="4.2" width="39.6" height="39.6" rx="8" fill="none" stroke="#fbf7f0" stroke-width="0.85" opacity="0.26"/>
-  <g fill="#fbf7f0">
-    <rect x="12.1" y="11" width="3.3" height="23" rx="1.65"/>
-    <rect x="12.1" y="11" width="22.8" height="3.3" rx="1.65"/>
-    <rect x="12.1" y="20.85" width="21.8" height="3.3" rx="1.65"/>
-    <rect x="12.1" y="30.7" width="22.8" height="3.3" rx="1.65"/>
+  <g fill="none" stroke="#fbf7f0" stroke-width="3.2" stroke-linecap="round">
+    <path d="M19.97 17.64A7.5 7.5 0 0 1 19.97 30.36"/>
+    <path d="M22.89 12.98A13 13 0 0 1 22.89 35.02"/>
+    <path d="M25.8 8.31A18.5 18.5 0 0 1 25.8 39.69"/>
   </g>
+  <circle cx="16" cy="24" r="3.2" fill="#fbf7f0"/>
 </svg>

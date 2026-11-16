@@ -2234,7 +2234,14 @@ h3 {
   opacity: 0.26;
 }
 
-.echo-mark-strokes {
+.echo-mark-rings {
+  fill: none;
+  stroke: var(--mark-ink);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+
+.echo-mark-dot {
   fill: var(--mark-ink);
 }
 
