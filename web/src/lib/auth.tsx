@@ -14,6 +14,10 @@ interface AuthValue {
   verifyEmail: (email: string, code: string) => Promise<void>;
   setEmailOtp: (enabled: boolean) => Promise<void>;
   setReminderEmail: (enabled: boolean) => Promise<void>;
+  /** Change the password without leaving the session, keeping the new token. */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  /** Delete the vault and the account, then drop the session. */
+  deleteAccount: (password: string) => Promise<void>;
   signOut: () => void;
 }
 
@@ -78,14 +82,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.setReminderEmail(enabled));
   }, []);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    // Every token minted before the change dies, including this one, so the fresh token
+    // the API hands back is what keeps the vault open after it.
+    const fresh = await api.changePassword(currentPassword, newPassword);
+    setToken(fresh);
+    setUser(await api.me());
+  }, []);
+
+  const deleteAccount = useCallback(async (password: string) => {
+    await api.deleteAccount(password);
+    setToken(null);
+    setUser(null);
+  }, []);
+
   const signOut = useCallback(() => {
     setToken(null);
     setUser(null);
   }, []);
 
   const value = useMemo<AuthValue>(
-    () => ({ user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, setReminderEmail, signOut }),
-    [user, loading, signIn, signInWithCode, signUp, verifyEmail, setEmailOtp, setReminderEmail, signOut],
+    () => ({
+      user,
+      loading,
+      signIn,
+      signInWithCode,
+      signUp,
+      verifyEmail,
+      setEmailOtp,
+      setReminderEmail,
+      changePassword,
+      deleteAccount,
+      signOut,
+    }),
+    [
+      user,
+      loading,
+      signIn,
+      signInWithCode,
+      signUp,
+      verifyEmail,
+      setEmailOtp,
+      setReminderEmail,
+      changePassword,
+      deleteAccount,
+      signOut,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -205,8 +205,8 @@ export default function Vault() {
     <div className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Memory Vault</p>
-          <h1>Everything worth keeping</h1>
+          <p className="eyebrow">My notes</p>
+          <h1>Everything you have saved</h1>
           <p className="page-sub">
             {page ? `${page.total} ${page.total === 1 ? 'memory' : 'memories'}` : 'Loading…'}
             {debounced ? ` matching “${debounced}”` : ''}

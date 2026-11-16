@@ -81,9 +81,10 @@ export default function Reminders() {
       <header className="page-head">
         <div>
           <p className="eyebrow">Reminders</p>
-          <h1>Promises with a date</h1>
+          <h1>Things you must not forget</h1>
           <p className="page-sub">
-            Each reminder becomes one durable job. It fires once, even if the server restarts in between.
+            Each reminder rings once, on its date. Turn on email reminders in the menu on the left if you want
+            them in your inbox as well.
           </p>
         </div>
       </header>

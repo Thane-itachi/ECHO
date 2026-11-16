@@ -246,6 +246,45 @@ export function setAuthPreferences(input: { email_otp_enabled: boolean }): Promi
   return request<User>('/auth/preferences', { method: 'PATCH', body: input });
 }
 
+export interface Capabilities {
+  email_delivery: boolean;
+  push: boolean;
+}
+
+/** What this deployment can actually deliver, so the interface stops offering the rest. */
+export function getCapabilities(): Promise<Capabilities> {
+  return request<Capabilities>('/auth/capabilities');
+}
+
+/** Change the password from inside the session. Returns the token that replaces it. */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<string> {
+  const previous = getToken();
+  try {
+    const result = await request<{ access_token: string }>('/auth/password', {
+      method: 'PATCH',
+      body: { current_password: currentPassword, new_password: newPassword },
+    });
+    return result.access_token;
+  } catch (error) {
+    // A mistyped current password answers 401, and the transport drops the token on any
+    // 401. That would sign someone out of a perfectly good session over a typo, so the
+    // token goes back before the error travels.
+    if (previous) setToken(previous);
+    throw error;
+  }
+}
+
+/** Delete the vault, everything in it, and the account. */
+export async function deleteAccount(password: string): Promise<void> {
+  const previous = getToken();
+  try {
+    await request<void>('/auth/account', { method: 'DELETE', body: { password } });
+  } catch (error) {
+    if (previous) setToken(previous);
+    throw error;
+  }
+}
+
 export function setReminderEmail(enabled: boolean): Promise<User> {
   return request<User>('/auth/reminder-email', { method: 'PATCH', body: { enabled } });
 }

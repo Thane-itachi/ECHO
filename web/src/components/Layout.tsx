@@ -1,26 +1,58 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { EchoMark } from '../components/Logo';
+import NavIcon from '../components/NavIcon';
 import NotificationToggle from '../components/NotificationToggle';
-import { listProposals } from '../lib/api';
+import { ApiError, getCapabilities, listProposals } from '../lib/api';
 import { useAuth } from '../lib/auth';
 
+/* Plain words, each with a picture. "Vault" and "captures" are the sort of words
+   that mean nothing to someone who has not spent their life in software. */
 const NAV = [
-  { to: '/vault', label: 'Memory Vault', hint: 'Everything you have told ECHO' },
-  { to: '/ask', label: 'Ask ECHO', hint: 'Find what you have stored' },
-  { to: '/people', label: 'People', hint: 'Who your memories are about' },
-  { to: '/proposals', label: 'Captures', hint: 'Wait for your approval' },
-  { to: '/reminders', label: 'Reminders', hint: 'Promises with a date' },
-  { to: '/documents', label: 'Documents', hint: 'Receipts and certificates, encrypted' },
+  { to: '/vault', label: 'My notes', hint: 'Everything you have saved', icon: 'notes' },
+  { to: '/ask', label: 'Ask a question', hint: 'Find one thing you saved', icon: 'ask' },
+  { to: '/people', label: 'People', hint: 'Names you have saved', icon: 'people' },
+  { to: '/proposals', label: 'Things to check', hint: 'ECHO found these. Say yes or no.', icon: 'check' },
+  { to: '/reminders', label: 'Reminders', hint: 'Dates you must not miss', icon: 'bell' },
+  { to: '/documents', label: 'Files', hint: 'Papers and pictures you added', icon: 'files' },
 ];
 
+type TextSize = 'normal' | 'large' | 'largest';
+const TEXT_SIZES: { value: TextSize; label: string }[] = [
+  { value: 'normal', label: 'Normal' },
+  { value: 'large', label: 'Big' },
+  { value: 'largest', label: 'Huge' },
+];
+
+function savedTextSize(): TextSize {
+  try {
+    const saved = localStorage.getItem('echo-text-size');
+    if (saved === 'large' || saved === 'largest') return saved;
+  } catch {
+    /* private mode: the choice simply does not survive a reload */
+  }
+  return 'normal';
+}
+
 export default function Layout() {
-  const { user, signOut, setEmailOtp, setReminderEmail } = useAuth();
+  const { user, signOut, setEmailOtp, setReminderEmail, changePassword, deleteAccount } = useAuth();
   const [pending, setPending] = useState<number | null>(null);
   const [otpBusy, setOtpBusy] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
   const [reminderBusy, setReminderBusy] = useState(false);
+  // null until the deployment has answered. Only an explicit `false` disables the switch,
+  // so an older server that does not know the question never locks the toggle.
+  const [emailDelivery, setEmailDelivery] = useState<boolean | null>(null);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [passwordNote, setPasswordNote] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [textSize, setTextSize] = useState<TextSize>(savedTextSize);
 
   async function toggleSignInCode(enabled: boolean) {
     setOtpBusy(true);
@@ -45,6 +77,77 @@ export default function Layout() {
       setReminderBusy(false);
     }
   }
+
+  async function submitPassword(event: FormEvent) {
+    event.preventDefault();
+    setPasswordBusy(true);
+    setPasswordError(null);
+    setPasswordNote(null);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword('');
+      setNewPassword('');
+      setPasswordNote('Password changed. Your other sessions have been signed out.');
+    } catch (caught) {
+      setPasswordError(
+        caught instanceof ApiError && caught.status === 401
+          ? 'That current password is not right.'
+          : caught instanceof ApiError
+            ? caught.message
+            : 'Could not change the password.',
+      );
+    } finally {
+      setPasswordBusy(false);
+    }
+  }
+
+  async function submitDeletion(event: FormEvent) {
+    event.preventDefault();
+    setDeleteError(null);
+    const sure = window.confirm(
+      'Delete your vault? Every memory, person, reminder and document goes with it, and this cannot be undone.',
+    );
+    if (!sure) return;
+    setDeleteBusy(true);
+    try {
+      await deleteAccount(deletePassword);
+    } catch (caught) {
+      setDeleteError(
+        caught instanceof ApiError && caught.status === 401
+          ? 'That password is not right.'
+          : caught instanceof ApiError
+            ? caught.message
+            : 'Could not delete the vault.',
+      );
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    // Every size in the stylesheet is in rem, so this one attribute grows the text
+    // everywhere: headings, labels, buttons and the words inside them.
+    document.documentElement.dataset.textsize = textSize;
+    try {
+      localStorage.setItem('echo-text-size', textSize);
+    } catch {
+      /* private mode */
+    }
+  }, [textSize]);
+
+  useEffect(() => {
+    let alive = true;
+    getCapabilities()
+      .then((caps) => {
+        if (alive) setEmailDelivery(caps.email_delivery);
+      })
+      .catch(() => {
+        /* the switch simply stays available; the server still refuses what it cannot do */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -78,6 +181,7 @@ export default function Layout() {
               to={item.to}
               className={({ isActive }) => (isActive ? 'nav-item is-active' : 'nav-item')}
             >
+              <NavIcon name={item.icon} />
               <span className="nav-label">
                 {item.label}
                 {item.to === '/proposals' && pending ? <span className="badge">{pending}</span> : null}
@@ -88,6 +192,21 @@ export default function Layout() {
         </nav>
 
         <div className="sidebar-foot">
+          <div className="text-size">
+            <span>Text size</span>
+            <div className="text-size-buttons">
+              {TEXT_SIZES.map((size) => (
+                <button
+                  key={size.value}
+                  type="button"
+                  aria-pressed={textSize === size.value}
+                  onClick={() => setTextSize(size.value)}
+                >
+                  {size.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="account">
             <span className="account-label">Signed in as</span>
             <span className="account-email">{user?.email}</span>
@@ -102,12 +221,16 @@ export default function Layout() {
             <input
               type="checkbox"
               checked={user?.email_otp_enabled ?? false}
-              disabled={otpBusy || !user?.email_verified}
+              disabled={otpBusy || !user?.email_verified || emailDelivery === false}
               onChange={(event) => void toggleSignInCode(event.target.checked)}
             />
             <span>
               Email me a code at sign-in
-              <small>Your password, then six digits. Off by default.</small>
+              <small>
+                {emailDelivery === false
+                  ? 'Not available: this deployment has no mail provider, so a code could never arrive.'
+                  : 'Your password, then six digits. Off by default.'}
+              </small>
             </span>
           </label>
           <label className="sidebar-toggle">
@@ -124,6 +247,52 @@ export default function Layout() {
           </label>
           <NotificationToggle />
           {otpError ? <p className="sidebar-note">{otpError}</p> : null}
+
+          <details className="sidebar-details">
+            <summary>Change my password</summary>
+            <form className="sidebar-form" onSubmit={(event) => void submitPassword(event)}>
+              <input
+                type="password"
+                autoComplete="current-password"
+                placeholder="current password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                required
+              />
+              <input
+                type="password"
+                autoComplete="new-password"
+                placeholder="new password, 10+ characters"
+                minLength={10}
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                required
+              />
+              <button type="submit" className="ghost-button" disabled={passwordBusy}>
+                {passwordBusy ? 'Changing…' : 'Change password'}
+              </button>
+              {passwordError ? <p className="sidebar-note is-warning">{passwordError}</p> : null}
+              {passwordNote ? <p className="sidebar-note">{passwordNote}</p> : null}
+            </form>
+          </details>
+
+          <details className="sidebar-details">
+            <summary>Delete my vault</summary>
+            <form className="sidebar-form" onSubmit={(event) => void submitDeletion(event)}>
+              <input
+                type="password"
+                autoComplete="current-password"
+                placeholder="password"
+                value={deletePassword}
+                onChange={(event) => setDeletePassword(event.target.value)}
+                required
+              />
+              <button type="submit" className="ghost-button is-danger" disabled={deleteBusy}>
+                {deleteBusy ? 'Deleting…' : 'Delete everything'}
+              </button>
+              {deleteError ? <p className="sidebar-note is-warning">{deleteError}</p> : null}
+            </form>
+          </details>
           <p className="sidebar-note">
             Everything here is sealed with your own key.
           </p>

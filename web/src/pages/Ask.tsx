@@ -34,11 +34,11 @@ export default function Ask() {
     <div className="page page-narrow">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Ask ECHO</p>
-          <h1>Ask about anything you stored</h1>
+          <p className="eyebrow">Ask a question</p>
+          <h1>Ask about anything you saved</h1>
           <p className="page-sub">
-            Answers are quoted from your own memories and cited. ECHO does not invent an answer when your vault has
-            nothing to say.
+            ECHO answers using your own notes and shows you which one it used. If it cannot find an answer, it
+            says so instead of making one up.
           </p>
         </div>
       </header>

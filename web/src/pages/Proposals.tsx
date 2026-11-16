@@ -114,11 +114,11 @@ export default function Proposals() {
     <div className="page page-narrow">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Captures</p>
-          <h1>Nothing is filed without you</h1>
+          <p className="eyebrow">Things to check</p>
+          <h1>Nothing is saved without your yes</h1>
           <p className="page-sub">
-            When ECHO drafts a memory from something you said, it waits here. Approving creates exactly one memory;
-            the decision is recorded.
+            When ECHO thinks something you said is worth keeping, it waits here. Say yes and it is saved once.
+            Say no and it is gone.
           </p>
         </div>
         <button type="button" className="ghost-button" onClick={() => setDrafting((value) => !value)}>

@@ -80,11 +80,11 @@ export default function Documents() {
     <div className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Documents</p>
-          <h1>Receipts, certificates, anything on paper</h1>
+          <p className="eyebrow">Files</p>
+          <h1>Papers and pictures, kept safe</h1>
           <p className="page-sub">
-            Files are encrypted with your key before they touch the disk. Nobody else, including an administrator,
-            can open them.
+            Your files are locked with your key before they are stored. Nobody else can open them, not even an
+            administrator.
           </p>
         </div>
       </header>

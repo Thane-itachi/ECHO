@@ -178,15 +178,15 @@ export default function Login() {
 
   const heading =
     step === 'signup'
-      ? 'Start your vault'
+      ? 'Make your account'
       : step === 'verify'
-        ? 'Confirm your address'
+        ? 'Check your email'
         : step === 'otp'
-          ? 'One more step'
+          ? 'Enter your code'
           : step === 'forgot'
-            ? 'Reset your password'
+            ? 'Forgot your password'
             : step === 'reset'
-              ? 'Choose a new password'
+              ? 'Make a new password'
               : 'Welcome back';
 
   return (
@@ -207,9 +207,9 @@ export default function Login() {
           ECHO keeps it and hands it back the moment you ask.
         </p>
         <ul className="story-points">
-          <li>Memories are encrypted per person, at rest.</li>
-          <li>Nothing is filed from a conversation without your approval.</li>
-          <li>Search only ever touches your own vault.</li>
+          <li>Only you can read your notes. Nobody else, not even an administrator.</li>
+          <li>Nothing is saved without you saying yes.</li>
+          <li>What you search stays yours alone.</li>
         </ul>
         <p className="story-sign">Kept by hand. Yours to read, and no one else&rsquo;s.</p>
       </section>
@@ -223,14 +223,14 @@ export default function Login() {
                 className={step === 'signin' ? 'tab is-active' : 'tab'}
                 onClick={() => go('signin')}
               >
-                Sign in
+                I already have an account
               </button>
               <button
                 type="button"
                 className={step === 'signup' ? 'tab is-active' : 'tab'}
                 onClick={() => go('signup')}
               >
-                Create account
+                I am new here
               </button>
             </div>
           ) : (
@@ -245,7 +245,7 @@ export default function Login() {
           {step === 'signin' || step === 'signup' ? (
             <form onSubmit={step === 'signup' ? submitSignup : submitSignin} className="form">
               <label className="field">
-                <span>Email</span>
+                <span>Your email</span>
                 <input
                   type="email"
                   autoComplete="email"
@@ -256,7 +256,7 @@ export default function Login() {
               </label>
 
               <label className="field">
-                <span>Password</span>
+                <span>Your password</span>
                 <input
                   type="password"
                   autoComplete={step === 'signup' ? 'new-password' : 'current-password'}
@@ -271,12 +271,12 @@ export default function Login() {
               {error ? <p className="form-error">{error}</p> : null}
 
               <button type="submit" className="primary-button" disabled={busy}>
-                {busy ? 'One moment…' : step === 'signup' ? 'Create my vault' : 'Open my vault'}
+                {busy ? 'One moment…' : step === 'signup' ? 'Make my account' : 'Sign in'}
               </button>
 
               {step === 'signup' ? (
                 <p className="auth-fine">
-                  We email a six digit code to check the address is yours. No link to click.
+                  We email you a 6-digit code to check the address is yours. There is no link to click.
                 </p>
               ) : (
                 <button
@@ -296,13 +296,13 @@ export default function Login() {
           {step === 'verify' ? (
             <form onSubmit={submitCode} className="form">
               <label className="field">
-                <span>Email</span>
+                <span>Your email</span>
                 <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
               </label>
-              <CodeField value={code} onChange={setCode} label="Six digits from the email" />
+              <CodeField value={code} onChange={setCode} label="The 6 digits from the email" />
               {error ? <p className="form-error">{error}</p> : null}
               <button type="submit" className="primary-button" disabled={busy || code.length !== 6}>
-                {busy ? 'Checking…' : 'Confirm and open my vault'}
+                {busy ? 'Checking…' : 'Check the code and sign in'}
               </button>
               <div className="auth-row">
                 <button type="button" className="link-button" onClick={resend} disabled={cooldown > 0}>
@@ -317,9 +317,9 @@ export default function Login() {
 
           {step === 'otp' ? (
             <form onSubmit={submitCode} className="form">
-              <CodeField value={code} onChange={setCode} label="Six digits from the email" />
+              <CodeField value={code} onChange={setCode} label="The 6 digits from the email" />
               <p className="auth-fine">
-                This account asks for a code at every sign-in. It expires in five minutes and works once.
+                This account asks for a code every time you sign in. The code works once and expires in 5 minutes.
               </p>
               {error ? <p className="form-error">{error}</p> : null}
               <button type="submit" className="primary-button" disabled={busy || code.length !== 6}>

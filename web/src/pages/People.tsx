@@ -58,8 +58,8 @@ export default function People() {
       <header className="page-head">
         <div>
           <p className="eyebrow">People</p>
-          <h1>Who your memories are about</h1>
-          <p className="page-sub">Link a memory to a person and ECHO can gather everything about them in one place.</p>
+          <h1>People you have notes about</h1>
+          <p className="page-sub">Put a name on a note and everything about that person sits in one place.</p>
         </div>
       </header>
 

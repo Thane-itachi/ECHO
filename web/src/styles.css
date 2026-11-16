@@ -7,43 +7,49 @@
    ========================================================================== */
 
 :root {
-  /* paper and ink */
-  --paper: #f2ede3;
-  --paper-2: #fbf7f0;
-  --paper-3: #ebe4d7;
-  --ink: #17130e;
-  --ink-2: #42382c;
-  --ink-3: #6c6152;
-  --ink-4: #968a77;
-  --rule: #ded4c2;
-  --rule-2: #cbbfa9;
+  /* ---- Easy reading palette -------------------------------------------------
+     Near-black ink on warm white paper, and one strong blue for anything you can
+     press. Every text/background pair below clears WCAG AA for normal text, and
+     the body copy clears AAA: the point of this theme is that it can be read by
+     someone who left their glasses in the other room, in daylight, without
+     guessing what a colour means. */
+  --paper: #f7f2e9;
+  --paper-2: #ffffff;
+  --paper-3: #efe8db;
+  --ink: #14100b;
+  --ink-2: #332c24;
+  --ink-3: #4e463b;
+  --ink-4: #6b6153;
+  --rule: #d8cebc;
+  --rule-2: #b3a691;
 
-  /* accents: leather for attention, forest for confirmation, ox for danger */
-  --leather: #8c4a2b;
-  --leather-mark: #7f4327;
-  --leather-deep: #6d3620;
-  --leather-wash: #f0e0d4;
-  --forest: #2a5145;
-  --forest-wash: #e2eae2;
-  --ox: #93352a;
-  --ox-wash: #f5e3dd;
+  /* Blue means "this does something". Green means "done". Red means "this destroys". */
+  --leather: #10457e;
+  --leather-mark: #0c3765;
+  --leather-deep: #082a4e;
+  --leather-wash: #e4edf8;
+  --forest: #17603d;
+  --forest-wash: #e1f1e7;
+  --ox: #a32115;
+  --ox-wash: #fbe7e3;
 
-  /* dark panel */
-  --panel: #16120d;
-  --panel-2: #1f1a13;
-  --panel-text: #ece4d5;
-  --panel-muted: #9c9282;
-  --panel-rule: #2e2820;
+  /* The sidebar keeps a dark ground, with white text rather than grey. */
+  --panel: #17130e;
+  --panel-2: #221c14;
+  --panel-text: #ffffff;
+  --panel-muted: #d6ccbc;
+  --panel-rule: #3a3227;
 
-  /* Instrument Serif sets the voice; Newsreader is what you read; Karla is the
-     machinery: labels, controls, numbers. */
-  --display: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --reading: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  /* One family for reading and for headings. A serif is lovely and this app used
+     to be set in one; for a reader who is older or out of practice, plain letters,
+     wide spacing and a big size beat any amount of charm. */
+  --display: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --reading: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --sans: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
 
-  --shadow-sheet: 0 1px 0 rgba(23, 19, 14, 0.04), 0 22px 48px -32px rgba(23, 19, 14, 0.4);
-  --shadow-lift: 0 1px 0 rgba(23, 19, 14, 0.05), 0 30px 60px -36px rgba(23, 19, 14, 0.45);
+  --shadow-sheet: 0 1px 0 rgba(23, 19, 14, 0.05), 0 18px 40px -28px rgba(23, 19, 14, 0.35);
+  --shadow-lift: 0 1px 0 rgba(23, 19, 14, 0.06), 0 26px 52px -30px rgba(23, 19, 14, 0.4);
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
@@ -59,18 +65,28 @@ body,
   min-height: 100%;
 }
 
+/* Three text sizes, chosen in the sidebar and remembered on this device. Every
+   size in this file is in rem, so this one number grows the whole app. */
+html {
+  font-size: 17.5px;
+}
+
+html[data-textsize='large'] {
+  font-size: 19.5px;
+}
+
+html[data-textsize='largest'] {
+  font-size: 21.5px;
+}
+
 body {
   margin: 0;
   font-synthesis: none;
   background-color: var(--paper);
-  background-image:
-    radial-gradient(1100px 600px at 12% -10%, rgba(255, 255, 255, 0.55), transparent 70%),
-    radial-gradient(900px 700px at 100% 0%, rgba(214, 196, 168, 0.28), transparent 65%);
-  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 15.5px;
-  line-height: 1.6;
+  font-size: 1.02rem;
+  line-height: 1.7;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -657,6 +673,69 @@ button {
 
 .sidebar-toggle input:disabled + span {
   opacity: 0.55;
+}
+
+/* The two account controls live in the dark rail, so they carry their own surfaces
+   rather than borrowing the light `--paper` fields used by the main column. */
+.sidebar-details {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(242, 237, 227, 0.16);
+  border-radius: 2px;
+  font-size: 0.78rem;
+  color: #c9c0b1;
+}
+
+.sidebar-details summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #c9c0b1;
+}
+
+.sidebar-details summary:hover {
+  color: #f2ebdf;
+}
+
+.sidebar-form {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.sidebar-form input {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid rgba(242, 237, 227, 0.18);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--paper-2);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+}
+
+.sidebar-form input::placeholder {
+  color: rgba(242, 237, 227, 0.4);
+}
+
+.sidebar-form input:focus {
+  outline: none;
+  border-color: rgba(242, 237, 227, 0.45);
+  box-shadow: 0 0 0 2px rgba(242, 237, 227, 0.08);
+}
+
+.sidebar-form .ghost-button.is-danger {
+  border-color: rgba(206, 104, 74, 0.45);
+  color: #e6a58e;
+}
+
+.sidebar-form .ghost-button.is-danger:hover:not(:disabled) {
+  border-color: rgba(206, 104, 74, 0.75);
+  color: #ffd0bf;
+  background: rgba(206, 104, 74, 0.1);
+}
+
+.sidebar-note.is-warning {
+  color: #e6a58e;
 }
 
 .sidebar-note {
@@ -2214,4 +2293,536 @@ h3 {
   justify-self: start;
   font-size: 0.74rem;
   padding: 0.35rem 0.6rem;
+}
+
+/* ============================================================================
+   Easy reading pass.
+   Anything below wins over the rules above at equal specificity. The three
+   goals, in order: you can read it, you can see what to press, you know what
+   it will do. Decoration that got in the way (grain, hairline rules, small
+   grey italics) is gone or promoted to something legible.
+   ========================================================================== */
+
+/* The grain was a nice texture and it lowered the contrast of every letter on it. */
+body::before {
+  display: none;
+}
+
+/* --- headings ------------------------------------------------------------- */
+h1,
+h2,
+h3,
+.section-title,
+.wordmark {
+  font-family: var(--sans);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+h1 {
+  font-size: clamp(1.9rem, 3.1vw, 2.5rem);
+}
+
+h2 {
+  font-size: 1.35rem;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+}
+
+.page-sub,
+.lede,
+.muted {
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.page-sub {
+  color: var(--ink-2);
+}
+
+/* The italic serif asides were the least readable text in the app. */
+.sidebar-note,
+.story-sign,
+.auth-fine,
+.auth-dev {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+/* --- anything you can press ---------------------------------------------- */
+button,
+.primary-button,
+.ghost-button,
+.link-button,
+.filter,
+.tab {
+  font-family: var(--sans);
+  font-weight: 700;
+}
+
+.primary-button,
+.ghost-button,
+button.primary-button,
+button.ghost-button {
+  min-height: 3rem;
+  padding: 0.8rem 1.3rem;
+  border-radius: 8px;
+  border-width: 2px;
+  font-size: 1.02rem;
+  letter-spacing: 0.005em;
+}
+
+.primary-button {
+  background: var(--leather);
+  border-color: var(--leather);
+  color: #ffffff;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: var(--leather-deep);
+  border-color: var(--leather-deep);
+}
+
+.primary-button:disabled {
+  opacity: 1;
+  background: #d7cfc0;
+  border-color: #d7cfc0;
+  color: #5b5346;
+}
+
+.link-button {
+  font-size: 1rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--leather-mark);
+}
+
+.tab {
+  min-height: 3rem;
+  font-size: 1rem;
+}
+
+.filter {
+  min-height: 2.6rem;
+  padding: 0.5rem 1rem;
+  border-width: 2px;
+  border-radius: 999px;
+  font-size: 0.96rem;
+}
+
+/* A focus ring you cannot miss, for keyboard and switch users. */
+:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--leather);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* --- fields --------------------------------------------------------------- */
+.field > span,
+.field > label {
+  font-family: var(--sans);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.field input,
+.field textarea,
+.field select,
+.inline-form input,
+.inline-form select,
+.filter,
+.search {
+  min-height: 3.1rem;
+  padding: 0.8rem 0.9rem;
+  border: 2px solid var(--rule-2);
+  border-radius: 8px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1.04rem;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus,
+.inline-form input:focus,
+.search:focus,
+.filter:focus {
+  border-color: var(--leather);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(16, 69, 126, 0.16);
+}
+
+.field > small,
+.field small {
+  font-size: 0.88rem;
+  color: var(--ink-3);
+}
+
+.form-error {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ox);
+  border-left-width: 4px;
+}
+
+/* --- the sidebar ---------------------------------------------------------- */
+.brand-mark {
+  font-size: 1.3rem;
+  letter-spacing: 0.16em;
+}
+
+.brand-tagline {
+  font-size: 0.82rem;
+  color: var(--panel-muted);
+}
+
+.nav-item {
+  grid-template-columns: 2.1rem minmax(0, 1fr);
+  padding: 0.65rem 0.6rem;
+  border-radius: 8px;
+  row-gap: 0.1rem;
+}
+
+.nav-item .nav-label {
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.nav-item .nav-hint {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--panel-muted);
+}
+
+.nav-item.is-active {
+  background: var(--leather);
+}
+
+.nav-item.is-active .nav-hint {
+  color: #e8eef8;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  align-self: start;
+  margin-top: 0.15rem;
+  flex: none;
+}
+
+.account-label,
+.sidebar-toggle small {
+  color: var(--panel-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.sidebar-toggle {
+  padding: 0.7rem;
+  border-width: 2px;
+  border-color: rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.sidebar-toggle input {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.sidebar .ghost-button {
+  min-height: 2.9rem;
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 0.95rem;
+  border-radius: 8px;
+}
+
+.sidebar-note {
+  color: var(--panel-muted);
+}
+
+/* --- reading size control ------------------------------------------------- */
+.text-size {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--panel-text);
+}
+
+.text-size-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+}
+
+.text-size-buttons button {
+  min-height: 2.7rem;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--sans);
+  cursor: pointer;
+}
+
+.text-size-buttons button[aria-pressed='true'] {
+  background: var(--leather);
+  border-color: var(--leather);
+  color: #ffffff;
+}
+
+/* --- cards, rows and lists ------------------------------------------------ */
+.sheet,
+.card,
+.memory-card,
+.doc-card,
+.reminder,
+.person-card {
+  border-width: 2px;
+  border-color: var(--rule);
+  border-radius: 10px;
+  background: var(--paper-2);
+}
+
+.badge {
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--leather);
+  color: #ffffff;
+}
+
+/* --- the sign-in screen --------------------------------------------------- */
+.auth-story h1 {
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
+  font-weight: 800;
+}
+
+.auth-story h1 em {
+  font-style: normal;
+  color: var(--leather-mark);
+}
+
+.auth-story p,
+.story-points li {
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.story-points li {
+  padding-left: 0.2rem;
+}
+
+.auth-tabs .tab {
+  font-size: 1.02rem;
+}
+
+/* --- the nav row, with a picture where the margin number used to be --------- */
+.nav-item {
+  grid-template-columns: 2.2rem minmax(0, 1fr);
+  column-gap: 0.7rem;
+}
+
+.nav-item::before {
+  content: none;
+}
+
+.nav-item::after {
+  display: none;
+}
+
+.nav-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.nav-item .nav-label {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.nav-item .nav-hint {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.nav-item.is-active .nav-icon {
+  color: #ffffff;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- nothing smaller than this -------------------------------------------
+   A floor on the small print. The old sheet set dates, labels, chips and table
+   heads between 10 and 12px, which is decorative at best and unreadable at
+   worst. Every one of these is now at least 0.86rem (about 15px), which is the
+   size the rest of the world uses for body text. */
+.eyebrow {
+  font-size: 0.86rem;
+}
+.section-title {
+  font-size: 1.1rem;
+}
+.chip {
+  font-size: 0.92rem;
+}
+.badge {
+  font-size: 0.9rem;
+}
+.field > span {
+  font-size: 1rem;
+}
+.field > small {
+  font-size: 0.9rem;
+}
+.nav-item::before {
+  font-size: 0.86rem;
+}
+.nav-hint {
+  font-size: 0.88rem;
+}
+.account-label {
+  font-size: 0.9rem;
+}
+.account-email {
+  font-size: 0.95rem;
+}
+.sidebar-toggle {
+  font-size: 0.94rem;
+}
+.sidebar-toggle small {
+  font-size: 0.88rem;
+}
+.sidebar-details {
+  font-size: 0.95rem;
+}
+.sidebar-form input {
+  font-size: 0.88rem;
+}
+.sidebar-note {
+  font-size: 0.92rem;
+}
+.memory-card::before {
+  font-size: 0.86rem;
+}
+.memory-card-date {
+  font-size: 0.9rem;
+}
+.meta dt {
+  font-size: 0.9rem;
+}
+.detail::after {
+  font-size: 0.86rem;
+}
+.suggestions .chip {
+  font-size: 0.92rem;
+}
+.citations li::before {
+  font-size: 0.86rem;
+}
+.proposal-state {
+  font-size: 0.9rem;
+}
+.person-date {
+  font-size: 0.9rem;
+}
+.auth-dev {
+  font-size: 0.92rem;
+}
+.enrol-label {
+  font-size: 0.9rem;
+}
+.enrol-hint {
+  font-size: 0.92rem;
+}
+.enrol-secret-text .ghost-button {
+  font-size: 0.9rem;
+}
+.stat-label {
+  font-size: 0.9rem;
+}
+.stat-hint {
+  font-size: 0.9rem;
+}
+.chart-label {
+  font-size: 0.86rem;
+}
+.admin-table th {
+  font-size: 0.9rem;
+}
+.event > span:first-child {
+  font-size: 0.9rem;
+}
+.app-foot {
+  font-size: 0.88rem;
+}
+.app-foot-mark {
+  font-size: 0.9rem;
+}
+.notify-test {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 560px) {
+  body {
+    font-size: 1.02rem;
+  }
+}
+
+/* On the dark story panel the accent has to be a light blue, not the deep one
+   that carries text on paper: #0c3765 on #17130e is a 1.5:1 whisper. */
+.auth-story h1 em {
+  color: #cfe1f8;
+}
+
+/* The global `a:hover` reaches into the dark sidebar and paints the link navy on
+   near-black: a 1.3:1 ghost. Anything inside the sidebar keeps its own colours. */
+.sidebar a,
+.sidebar a:hover,
+.sidebar a:visited,
+.sidebar .nav-item,
+.sidebar .nav-item:hover,
+.sidebar .nav-item:hover .nav-label {
+  color: #ffffff;
+}
+
+.sidebar .nav-item:hover .nav-hint {
+  color: #ffffff;
+}
+
+.sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar a.ghost-button:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
 }
