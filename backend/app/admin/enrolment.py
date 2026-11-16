@@ -29,7 +29,6 @@ import re
 import secrets
 from datetime import timedelta
 
-import qrcode
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -51,7 +50,14 @@ def _digest(token: str) -> str:
 
 
 def qr_data_uri(payload: str) -> str:
-    """A PNG data URI of the otpauth URL, so a phone can scan what it cannot type."""
+    """A PNG data URI of the otpauth URL, so a phone can scan what it cannot type.
+
+    The QR library drags in Pillow, which is a heavy import paid for by every cold
+    start of the API function. Only admin enrolment draws a QR, so it is loaded here,
+    on the one request that needs it, and never on the sign-in path.
+    """
+    import qrcode
+
     code = qrcode.QRCode(box_size=8, border=2, error_correction=qrcode.constants.ERROR_CORRECT_M)
     code.add_data(payload)
     code.make(fit=True)
@@ -135,6 +141,12 @@ def enrol(
         raise InvalidRequest(str(exc)) from exc
 
     secret = generate_secret()
+    url = otpauth_url(secret, invite.email)
+    # The QR is rendered *before* anything is written. A deployment that cannot draw it
+    # (Pillow missing, say) used to raise after the account row already existed, leaving
+    # a half-made administrator and a link that answered 500. Now a failure here leaves
+    # the database untouched and the link unused, so it can simply be opened again.
+    qr = qr_data_uri(url)
     account = session.scalars(
         select(AdminUser).where(AdminUser.email == invite.email)
     ).one_or_none()
@@ -164,7 +176,7 @@ def enrol(
         detail={"email": invite.email, "created": created, "role": account.role},
     )
     session.commit()
-    return account, secret, otpauth_url(secret, account.email), invite
+    return account, secret, url, qr, invite
 
 
 def confirm_enrolment(session: Session, *, token: str, code: str) -> AdminUser:

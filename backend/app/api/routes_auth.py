@@ -16,11 +16,13 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response, status
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
-from app.api.deps import current_user, get_db
+from app.api.deps import current_user, get_cipher, get_db, get_document_store
 from app.core.config import settings
+from app.core.crypto import AnyCipher
 from app.core.errors import Conflict, EchoError, Forbidden, Unauthorized
 from app.core.security import (
     DUMMY_HASH,
@@ -31,14 +33,17 @@ from app.core.security import (
     verify_password,
 )
 from app.core.time import utcnow
-from app.db.models import User
-from app.repositories.system import UserRepository
+from app.db.models import EmailCode, User
+from app.repositories.system import AuditRepository, UserRepository
 from app.schemas import (
+    AccountDeletion,
     AuthPreferences,
+    Capabilities,
     CodeSubmission,
     EmailCodeRequest,
     LoginRequest,
     LoginWithCodeRequest,
+    PasswordChange,
     PasswordResetRequest,
     RegisterRequest,
     ReminderEmailPreference,
@@ -47,6 +52,8 @@ from app.schemas import (
     UserRead,
 )
 from app.services import email_codes
+from app.services.document_storage import DocumentStore
+from app.services.documents import DocumentService
 from app.services.mailer import Mailer
 
 logger = logging.getLogger("echo.auth")
@@ -111,6 +118,16 @@ def _issue(session: Session, request: Request, *, email: str, purpose: str, user
 def _dev_echo(code: str | None) -> str | None:
     """Only in development with no provider: hand the code back over the API."""
     return code if settings.email_dev_echo else None
+
+
+def _mail_can_deliver(request: Request) -> bool:
+    """Can this deployment put a code in someone's inbox?
+
+    The answer comes from the mailer the app built, not from a config flag: a log mailer
+    writes the message to the server log, which nobody signing in can read.
+    """
+    mailer = getattr(request.app.state, "mailer", None)
+    return bool(mailer) and getattr(mailer, "name", "") != "log"
 
 
 def _token_for(user: User) -> TokenResponse:
@@ -251,10 +268,20 @@ def reset_password(payload: PasswordResetRequest, db: Session = Depends(get_db))
 
 @router.patch("/preferences", response_model=UserRead)
 def update_preferences(
-    payload: AuthPreferences, user: User = Depends(current_user), db: Session = Depends(get_db)
+    payload: AuthPreferences,
+    request: Request,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
 ) -> User:
     if payload.email_otp_enabled and not user.email_verified:
         raise Forbidden("confirm your email address before turning on codes at sign-in")
+    if payload.email_otp_enabled and not _mail_can_deliver(request):
+        # A deployment with no mail provider cannot deliver the code, and a sign-in that
+        # needs a code nobody receives is a locked door with the key inside.
+        raise Conflict(
+            "codes at sign-in need a mail provider and this deployment has none, "
+            "so turning this on would lock you out"
+        )
     user.email_otp_enabled = payload.email_otp_enabled
     db.commit()
     db.refresh(user)
@@ -272,6 +299,73 @@ def set_reminder_email(
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.get("/capabilities", response_model=Capabilities)
+def capabilities(request: Request, _user: User = Depends(current_user)) -> Capabilities:
+    """What this deployment can deliver, so the sidebar can stop offering the rest."""
+    return Capabilities(
+        email_delivery=_mail_can_deliver(request), push=settings.push_enabled
+    )
+
+
+@router.patch("/password", response_model=TokenResponse)
+def change_password(
+    payload: PasswordChange, user: User = Depends(current_user), db: Session = Depends(get_db)
+) -> TokenResponse:
+    """Change the password from inside the session, then keep the session alive.
+
+    Changing it bumps `credentials_changed_at`, which invalidates every token minted
+    before it — including the caller's. A fresh token comes back here so the person who
+    just proved they know both passwords is not thrown out of their own vault.
+    """
+    if not verify_password(payload.current_password, user.password_hash):
+        raise Unauthorized("that is not your current password")
+    user.password_hash = hash_password(payload.new_password)
+    user.credentials_changed_at = utcnow()
+    AuditRepository(db).record(
+        action="user.password_changed",
+        actor_id=user.id,
+        actor_type="user",
+        target_type="user",
+        target_id=user.id,
+        detail={"email": user.email},
+    )
+    db.commit()
+    db.refresh(user)
+    return _token_for(user)
+
+
+@router.delete("/account", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(
+    payload: AccountDeletion,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    cipher: AnyCipher = Depends(get_cipher),
+    store: DocumentStore = Depends(get_document_store),
+) -> Response:
+    """Delete the vault, everything in it, and the account itself.
+
+    Documents go bytes-first: cascading their rows would strand the ciphertext in object
+    storage with nothing left to name it. The rest hangs off `users.id` with ON DELETE
+    CASCADE, so the account row is the last thing to go.
+    """
+    if not verify_password(payload.password, user.password_hash):
+        raise Unauthorized("that is not your current password")
+    documents = DocumentService(db, user.id, cipher=cipher, store=store).delete_all()
+    AuditRepository(db).record(
+        action="account.deleted",
+        actor_id=user.id,
+        actor_type="user",
+        target_type="user",
+        target_id=user.id,
+        detail={"email": user.email, "documents": documents},
+    )
+    # Codes are keyed by address, not by a foreign key, so they outlive the row.
+    db.execute(delete(EmailCode).where(EmailCode.user_id == user.id))
+    db.delete(user)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/me", response_model=UserRead)

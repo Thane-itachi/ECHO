@@ -147,6 +147,38 @@ class AuthPreferences(StrictModel):
     email_otp_enabled: bool
 
 
+class PasswordChange(StrictModel):
+    """Change the password from inside a session, with no email involved.
+
+    This is the way back in when the address cannot receive mail: a deployment with no
+    provider has no working "forgot your password", so without this a mistyped password
+    is unrecoverable.
+    """
+
+    current_password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)
+    new_password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+
+    @field_validator("new_password")
+    @classmethod
+    def _password(cls, value: str) -> str:
+        if value.lower() in _WEAK_PASSWORDS:
+            raise ValueError("choose a password that is not on the obvious list")
+        return value
+
+
+class AccountDeletion(StrictModel):
+    """Deleting a vault asks for the password: it is the only confirmation there is."""
+
+    password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)
+
+
+class Capabilities(BaseModel):
+    """What this deployment can actually do, so the interface stops offering the rest."""
+
+    email_delivery: bool
+    push: bool
+
+
 class StatusResponse(BaseModel):
     status: str
     #: True only in development with no mail provider: the code comes back in the

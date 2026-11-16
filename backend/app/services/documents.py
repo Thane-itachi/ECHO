@@ -83,6 +83,23 @@ class DocumentService:
         self.documents.delete(attachment)
         self.session.commit()
 
+    def delete_all(self) -> int:
+        """Remove every document this owner holds, bytes first.
+
+        Used when an account is deleted: cascading the `attachments` rows would leave the
+        ciphertext in object storage with nothing pointing at it. Returns how many went.
+        """
+        rows = self.documents.search(limit=10_000, offset=0)[0]
+        for attachment in rows:
+            try:
+                self.blobs.delete(attachment.storage_key)
+            except FileNotFoundError:
+                # Already gone: the row is what matters, and it is deleted below.
+                pass
+            self.documents.delete(attachment)
+        self.session.commit()
+        return len(rows)
+
     # ------------------------------------------------------------------- reads
     def list(self, *, limit: int = 50, offset: int = 0) -> DocumentList:
         rows, total = self.documents.search(limit=limit, offset=offset)

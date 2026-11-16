@@ -49,8 +49,19 @@ export default function Login() {
   const [notice, setNotice] = useState<string | null>(null);
   const [devCode, setDevCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [slow, setSlow] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const timer = useRef<number | null>(null);
+
+  // Five seconds is long enough to worry someone: say the work is still going.
+  useEffect(() => {
+    if (!busy) {
+      setSlow(false);
+      return;
+    }
+    const handle = window.setTimeout(() => setSlow(true), 5000);
+    return () => window.clearTimeout(handle);
+  }, [busy]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -95,6 +106,10 @@ export default function Login() {
 
   async function submitSignin(event: FormEvent) {
     event.preventDefault();
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setError('This device is offline. Check your connection, then press Sign in again.');
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -271,8 +286,13 @@ export default function Login() {
               {error ? <p className="form-error">{error}</p> : null}
 
               <button type="submit" className="primary-button" disabled={busy}>
-                {busy ? 'One moment…' : step === 'signup' ? 'Make my account' : 'Sign in'}
+                {busy ? (step === 'signup' ? 'Making your account…' : 'Signing in…') : step === 'signup' ? 'Make my account' : 'Sign in'}
               </button>
+              {busy && slow ? (
+                <p className="auth-fine" role="status">
+                  Still working. A slow connection can take a few seconds. Please keep this page open.
+                </p>
+              ) : null}
 
               {step === 'signup' ? (
                 <p className="auth-fine">

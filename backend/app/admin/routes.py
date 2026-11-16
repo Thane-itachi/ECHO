@@ -133,7 +133,7 @@ def enrolment_start(
     token: str, payload: AdminEnrolmentRequest, db: Session = Depends(get_db)
 ) -> AdminEnrolmentGranted:
     """Set the account's own password and hand back a fresh TOTP secret, once."""
-    account, secret, url, _invite = enrolment.enrol(
+    account, secret, url, qr, _invite = enrolment.enrol(
         db, token=token, password=payload.password
     )
     return AdminEnrolmentGranted(
@@ -141,7 +141,7 @@ def enrolment_start(
         role=account.role,
         totp_secret=secret,
         otpauth_url=url,
-        qr_data_uri=enrolment.qr_data_uri(url),
+        qr_data_uri=qr,
     )
 
 

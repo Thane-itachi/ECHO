@@ -141,27 +141,98 @@ function describeError(payload: unknown, status: number): string {
   return error.message ?? `Request failed (${status})`;
 }
 
+const DEFAULT_TIMEOUT_MS = 12_000;
+
+/** Waiting is not the same as failing, and the difference has to be visible. */
+class TimeoutError extends Error {}
+class NetworkError extends Error {}
+
+/**
+ * One request, with a deadline and one quiet retry.
+ *
+ * The phone networks this app is used on drop connections silently: without a
+ * deadline a stalled `fetch` never settles, and the button spins on "One moment…"
+ * forever. Every request now gives up after 20 seconds, tries once more, and if it
+ * still cannot answer says so in plain words instead of hanging.
+ */
 async function request<T>(
   path: string,
-  options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
+  options: {
+    method?: string;
+    body?: unknown;
+    signal?: AbortSignal;
+    timeoutMs?: number;
+    retries?: number;
+  } = {},
 ): Promise<T> {
-  const { method = 'GET', body, signal } = options;
+  const { method = 'GET', body, timeoutMs = DEFAULT_TIMEOUT_MS, signal } = options;
+  const retries = options.retries ?? (method === 'GET' ? 1 : 0);
+  let attempt = 0;
+
+  for (;;) {
+    try {
+      return await once<T>(path, { method, body, timeoutMs, signal });
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') throw error;
+      const retryable = error instanceof TimeoutError || error instanceof NetworkError;
+      if (retryable && attempt < retries) {
+        attempt += 1;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        continue;
+      }
+      if (error instanceof TimeoutError) {
+        throw new ApiError(
+          0,
+          'timeout',
+          'The server did not answer in time. Check your connection, then press the button again.',
+        );
+      }
+      if (error instanceof NetworkError) {
+        throw new ApiError(
+          0,
+          'network_error',
+          'Cannot reach ECHO. Check your connection, then press the button again.',
+        );
+      }
+      throw error;
+    }
+  }
+}
+
+async function once<T>(
+  path: string,
+  options: { method: string; body?: unknown; timeoutMs: number; signal?: AbortSignal },
+): Promise<T> {
+  const { method, body, timeoutMs, signal } = options;
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const passOnAbort = () => controller.abort();
+  signal?.addEventListener('abort', passOnAbort);
 
   let response: Response;
   try {
     response = await fetch(`/api${path}`, {
       method,
       headers,
-      signal,
+      signal: controller.signal,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (error) {
-    if ((error as Error).name === 'AbortError') throw error;
-    throw new ApiError(0, 'network_error', 'Cannot reach the ECHO server. Is the API running?');
+    if ((error as Error).name === 'AbortError' && !timedOut) throw error;
+    if (timedOut) throw new TimeoutError('timed out');
+    throw new NetworkError('unreachable');
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', passOnAbort);
   }
 
   if (response.status === 401) setToken(null);
@@ -205,6 +276,7 @@ export async function signIn(email: string, password: string): Promise<string> {
   const result = await request<{ access_token: string }>('/auth/token', {
     method: 'POST',
     body: { email, password },
+    retries: 1,
   });
   return result.access_token;
 }
