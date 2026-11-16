@@ -103,6 +103,9 @@ export default function Settings() {
           <Link className="ghost-button" to="/privacy">
             How privacy works
           </Link>
+          <Link className="ghost-button" to="/architecture">
+            How ECHO is built
+          </Link>
           <Link className="ghost-button" to="/help">
             Questions
           </Link>

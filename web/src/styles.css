@@ -4293,3 +4293,100 @@ summary:focus-visible {
     max-height: 18rem;
   }
 }
+
+/* --- the architecture page ------------------------------------------------ */
+
+.app-graf {
+  max-width: 68ch;
+  font-family: var(--body);
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.app-graf strong {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.map-group {
+  margin-bottom: 1.1rem;
+}
+
+.map-label {
+  margin: 0 0 0.45rem;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.map {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.6rem;
+}
+
+.map-card {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper-2);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 140ms var(--ease), background-color 140ms var(--ease);
+}
+
+.map-card:hover {
+  border-color: var(--leather);
+  background: var(--leather-wash);
+}
+
+.map-card b {
+  font-size: 0.98rem;
+}
+
+.map-card small {
+  color: var(--ink-3);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.steps {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  position: relative;
+  padding-left: 2.3rem;
+  color: var(--ink-2);
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  top: 0.05rem;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--leather-wash);
+  color: var(--leather-mark);
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 700;
+}

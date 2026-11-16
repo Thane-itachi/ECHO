@@ -130,6 +130,9 @@ export default function Layout() {
             <Link className="ghost-button" to="/privacy">
               Privacy
             </Link>
+            <Link className="ghost-button" to="/architecture">
+              Architecture
+            </Link>
           </div>
           <a className="ghost-button" href="/admin">
             Admin console

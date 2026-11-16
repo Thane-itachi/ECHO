@@ -14,6 +14,7 @@ import Users from './admin/pages/Users';
 import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
 import { useAuth } from './lib/auth';
+import Architecture from './pages/Architecture';
 import Ask from './pages/Ask';
 import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
@@ -105,6 +106,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/security" element={<AccountSecurity />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/architecture" element={<Architecture />} />
           <Route path="/login" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>

@@ -100,6 +100,9 @@ export default function Profile() {
           <Link className="ghost-button" to="/privacy">
             How privacy works
           </Link>
+          <Link className="ghost-button" to="/architecture">
+            How ECHO is built
+          </Link>
         </div>
         <button type="button" className="ghost-button is-danger" onClick={signOut}>
           Sign out
