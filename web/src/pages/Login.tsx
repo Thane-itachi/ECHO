@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { EchoMark } from '../components/Logo';
 import { ApiError } from '../lib/api';
@@ -40,7 +41,9 @@ export default function Login() {
   const { signIn, signInWithCode, verifyEmail } = useAuth();
   const handleAuthFailure = useAuthFailureHandler();
 
-  const [step, setStep] = useState<Step>('signin');
+  // The homepage can send someone straight to the sign-up form.
+  const [params] = useSearchParams();
+  const [step, setStep] = useState<Step>(params.get('start') === 'signup' ? 'signup' : 'signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -230,6 +233,9 @@ export default function Login() {
       </section>
 
       <section className="auth-panel">
+        <Link className="auth-home" to="/">
+          ← Back to the homepage
+        </Link>
         <div className="auth-card">
           {step === 'signin' || step === 'signup' ? (
             <div className="auth-tabs">

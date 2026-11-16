@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 
 import { EchoMark } from '../components/Logo';
 import NavIcon from '../components/NavIcon';
 import NotificationToggle from '../components/NotificationToggle';
 import { ApiError, getCapabilities, listProposals } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { TEXT_SIZES, useTextSize } from '../lib/textSize';
 
 /* Plain words, each with a picture. "Vault" and "captures" are the sort of words
    that mean nothing to someone who has not spent their life in software. */
@@ -17,23 +18,6 @@ const NAV = [
   { to: '/reminders', label: 'Reminders', short: 'Reminders', hint: 'Dates you must not miss', icon: 'bell' },
   { to: '/documents', label: 'Files', short: 'Files', hint: 'Papers and pictures you added', icon: 'files' },
 ];
-
-type TextSize = 'normal' | 'large' | 'largest';
-const TEXT_SIZES: { value: TextSize; label: string }[] = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'large', label: 'Big' },
-  { value: 'largest', label: 'Huge' },
-];
-
-function savedTextSize(): TextSize {
-  try {
-    const saved = localStorage.getItem('echo-text-size');
-    if (saved === 'large' || saved === 'largest') return saved;
-  } catch {
-    /* private mode: the choice simply does not survive a reload */
-  }
-  return 'normal';
-}
 
 export default function Layout() {
   const { user, signOut, setEmailOtp, setReminderEmail, changePassword, deleteAccount } = useAuth();
@@ -52,7 +36,7 @@ export default function Layout() {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [textSize, setTextSize] = useState<TextSize>(savedTextSize);
+  const [textSize, setTextSize] = useTextSize();
   // Phones show the six destinations and fold the rest of the sidebar away:
   // a settings column above the notes is the first thing that makes a phone
   // screen feel wrong. Wide screens ignore this and show everything.
@@ -129,17 +113,6 @@ export default function Layout() {
   }
 
   useEffect(() => {
-    // Every size in the stylesheet is in rem, so this one attribute grows the text
-    // everywhere: headings, labels, buttons and the words inside them.
-    document.documentElement.dataset.textsize = textSize;
-    try {
-      localStorage.setItem('echo-text-size', textSize);
-    } catch {
-      /* private mode */
-    }
-  }, [textSize]);
-
-  useEffect(() => {
     let alive = true;
     getCapabilities()
       .then((caps) => {
@@ -171,13 +144,13 @@ export default function Layout() {
     <div className="shell">
       <aside className="sidebar">
         <div className="sidebar-top">
-          <div className="brand">
+          <Link className="brand" to="/" aria-label="ECHO home">
             <EchoMark size={34} />
             <span className="brand-text">
               <span className="brand-mark">ECHO</span>
               <span className="brand-tagline">never forget what matters</span>
             </span>
-          </div>
+          </Link>
 
           <button
             type="button"
@@ -229,6 +202,14 @@ export default function Layout() {
           <div className="account">
             <span className="account-label">Signed in as</span>
             <span className="account-email">{user?.email}</span>
+          </div>
+          <div className="sidebar-links">
+            <Link className="ghost-button" to="/help">
+              Questions
+            </Link>
+            <Link className="ghost-button" to="/privacy">
+              Privacy
+            </Link>
           </div>
           <a className="ghost-button" href="/admin">
             Admin console

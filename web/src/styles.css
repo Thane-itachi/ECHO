@@ -3143,3 +3143,531 @@ summary:focus-visible {
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
+
+/* ============================================================================
+   Public pages: the homepage and the three pages anyone can read.
+
+   Same paper, same ink, same big type as the app, but no sidebar: a visitor
+   without an account should not be shown a menu of doors they cannot open.
+   The header carries one way in, the footer carries the rest and the Text size
+   control, so the choice a visitor makes here still holds inside the app.
+   ========================================================================== */
+.public-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem clamp(1rem, 4vw, 2.6rem);
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.public-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.9rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.public-wordmark {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
+
+.public-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin-left: 0.6rem;
+}
+
+.public-links a,
+.public-footer nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.7rem;
+  border-radius: 4px;
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.public-links a:hover,
+.public-footer nav a:hover {
+  background: var(--paper-3);
+  color: var(--ink);
+}
+
+.public-links a.active {
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 var(--leather);
+}
+
+.public-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.public-main {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 74rem;
+  margin: 0 auto;
+  padding: clamp(1.4rem, 4vw, 3rem) clamp(1rem, 4vw, 2.6rem) clamp(2rem, 5vw, 3.4rem);
+  display: grid;
+  gap: clamp(1.6rem, 4vw, 2.8rem);
+}
+
+/* ---- the hero ------------------------------------------------------------- */
+.hero {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 54rem;
+}
+
+.hero.is-short {
+  gap: 0.6rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5.6vw, 3.2rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+
+.hero-em {
+  color: var(--leather);
+}
+
+.hero-lede,
+.public-lede {
+  margin: 0;
+  max-width: 48ch;
+  font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.3rem;
+}
+
+.hero-actions .primary-button,
+.hero-actions .ghost-button,
+.prose-actions .primary-button,
+.prose-actions .ghost-button {
+  min-height: 3.1rem;
+  padding: 0 1.25rem;
+  font-size: 1rem;
+}
+
+.hero-promises {
+  list-style: none;
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  max-width: 46ch;
+  color: var(--ink-2);
+}
+
+.hero-promises li {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: start;
+  font-size: 0.98rem;
+}
+
+.hero-promises li::before {
+  content: '✓';
+  color: var(--forest);
+  font-weight: 700;
+}
+
+/* ---- three cards ---------------------------------------------------------- */
+.public-cards {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+}
+
+.public-card {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  padding: clamp(1rem, 2.4vw, 1.5rem);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--leather);
+  border-radius: 2px 2px 6px 6px;
+  background: var(--paper-2);
+  box-shadow: var(--shadow-sheet);
+}
+
+.public-card-icon {
+  color: var(--leather);
+  line-height: 0;
+}
+
+.public-card h2 {
+  margin: 0.2rem 0 0;
+  font-size: 1.12rem;
+}
+
+.public-card p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.98rem;
+}
+
+/* ---- bands and steps ------------------------------------------------------ */
+.public-band {
+  display: grid;
+  gap: 0.9rem;
+  padding-top: clamp(1rem, 3vw, 1.6rem);
+  border-top: 1px solid var(--rule);
+}
+
+.public-band-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.public-band h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.6vw, 1.75rem);
+}
+
+.steps {
+  counter-reset: step;
+  list-style: none;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin: 0;
+  padding: 0;
+}
+
+.steps li {
+  counter-increment: step;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper-2);
+}
+
+.steps li::before {
+  content: counter(step);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--leather);
+}
+
+.steps strong {
+  font-size: 1.02rem;
+}
+
+.steps span {
+  color: var(--ink-2);
+  font-size: 0.95rem;
+}
+
+/* ---- long-form pages ------------------------------------------------------ */
+.prose {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 48rem;
+}
+
+.prose h2 {
+  margin: 0.5rem 0 0.4rem;
+  font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+}
+
+.prose p {
+  margin: 0 0 0.6rem;
+  color: var(--ink-2);
+  line-height: 1.65;
+}
+
+.prose ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 0.6rem;
+  padding-left: 1.2rem;
+  color: var(--ink-2);
+}
+
+.prose a {
+  color: var(--leather);
+}
+
+.example {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--leather);
+  border-radius: 0 4px 4px 0;
+  background: var(--paper-3);
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+.prose-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.faq {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 48rem;
+}
+
+.faq details {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper-2);
+  padding: 0 0.95rem;
+}
+
+.faq details[open] {
+  border-color: var(--rule-2);
+}
+
+.faq summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.1rem;
+  cursor: pointer;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.faq summary::marker {
+  color: var(--leather);
+}
+
+.faq details p {
+  margin: 0 0 0.9rem;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.faq a {
+  color: var(--leather);
+}
+
+/* ---- the foot of a public page ------------------------------------------- */
+.public-footer {
+  border-top: 1px solid var(--rule);
+  background: var(--paper-2);
+  padding: 1.1rem clamp(1rem, 4vw, 2.6rem) 1.5rem;
+}
+
+.public-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.4rem;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 74rem;
+  margin: 0 auto;
+}
+
+.public-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink-3);
+  font-size: 0.92rem;
+}
+
+.public-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem;
+}
+
+.text-size-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.text-size-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.text-size-inline-buttons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.text-size-inline button {
+  min-height: 2.75rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--rule-2);
+  border-radius: 4px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.text-size-inline button[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-2);
+}
+
+/* the way back from the sign-in form */
+.auth-home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--ink-3);
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+.auth-home:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* the two small links in the app's own menu */
+.sidebar-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+/* ============================================================================
+   Public pages on a phone: the header keeps one row, the footer becomes the
+   menu, and every button is wide enough for a thumb.
+   ========================================================================== */
+@media (max-width: 560px) {
+  .public-header {
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+  }
+
+  /* the same four links sit in the footer: a second copy would push the page
+     down before a visitor has read a word of it */
+  .public-links {
+    display: none;
+  }
+
+  .public-actions {
+    gap: 0.4rem;
+  }
+
+  .public-actions .primary-button,
+  .public-actions .ghost-button {
+    min-height: 2.9rem;
+    padding: 0 0.8rem;
+    font-size: 0.92rem;
+  }
+
+  .public-wordmark {
+    font-size: 0.98rem;
+    letter-spacing: 0.24em;
+  }
+
+  .public-main {
+    padding: 1.2rem 0.95rem 2.4rem;
+    gap: 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.85rem, 9vw, 2.4rem);
+  }
+
+  .hero-actions .primary-button,
+  .hero-actions .ghost-button,
+  .prose-actions .primary-button,
+  .prose-actions .ghost-button {
+    width: 100%;
+    min-height: 3.1rem;
+  }
+
+  .public-band-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .public-band-head .ghost-button {
+    width: 100%;
+    min-height: 3rem;
+  }
+
+  .public-footer-inner {
+    display: grid;
+    gap: 0.7rem;
+    justify-items: start;
+  }
+
+  .public-footer nav {
+    gap: 0;
+  }
+
+  .public-footer nav a {
+    min-height: 3rem;
+    padding: 0 0.55rem;
+  }
+
+  .text-size-inline {
+    flex-wrap: wrap;
+  }
+
+  .text-size-inline button {
+    min-height: 3rem;
+    padding: 0 0.9rem;
+  }
+
+  .faq summary {
+    min-height: 3.2rem;
+    font-size: 1rem;
+  }
+
+  .sidebar-links {
+    grid-template-columns: 1fr 1fr;
+  }
+}

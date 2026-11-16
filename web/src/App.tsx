@@ -12,11 +12,16 @@ import Overview from './admin/pages/Overview';
 import Security from './admin/pages/Security';
 import Users from './admin/pages/Users';
 import Layout from './components/Layout';
+import PublicLayout from './components/PublicLayout';
 import { useAuth } from './lib/auth';
 import Ask from './pages/Ask';
 import Documents from './pages/Documents';
+import Help from './pages/Help';
+import Home from './pages/Home';
+import HowItWorks from './pages/HowItWorks';
 import Login from './pages/Login';
 import People from './pages/People';
+import Privacy from './pages/Privacy';
 import Proposals from './pages/Proposals';
 import Reminders from './pages/Reminders';
 import Vault from './pages/Vault';
@@ -41,6 +46,15 @@ export default function App() {
 
   return (
     <Routes>
+      {/* The four pages anyone can read, signed in or not. They come before the
+          guards so a visitor without an account never lands inside the app. */}
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/help" element={<Help />} />
+      </Route>
+
       <Route
         path="/admin/login"
         element={
@@ -73,7 +87,6 @@ export default function App() {
         <Route path="*" element={<Splash />} />
       ) : user ? (
         <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/vault" replace />} />
           <Route path="/vault" element={<Vault />} />
           <Route path="/ask" element={<Ask />} />
           <Route path="/people" element={<People />} />
