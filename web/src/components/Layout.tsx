@@ -5,7 +5,6 @@ import { EchoMark } from '../components/Logo';
 import NavIcon from '../components/NavIcon';
 import { listProposals } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { TEXT_SIZES, useTextSize } from '../lib/textSize';
 
 /* Plain words, each with a picture. "Vault" and "captures" are the sort of words
    that mean nothing to someone who has not spent their life in software.
@@ -25,23 +24,9 @@ const NAV = [
   { to: '/reports', label: 'Reports', short: 'Reports', hint: 'What your memory holds', icon: 'chart' },
 ];
 
-/* The account pages live behind one row each, not a form in the sidebar: a
-   password box printed under the notes is the wrong thing to meet on a phone. */
-const ACCOUNT = [
-  { to: '/profile', label: 'Your account' },
-  { to: '/security', label: 'Security' },
-  { to: '/settings', label: 'Settings' },
-];
-
 export default function Layout() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [pending, setPending] = useState<number | null>(null);
-  const [textSize, setTextSize] = useTextSize();
-  // Phones show the nine destinations and fold the rest of the sidebar away:
-  // a settings column above the notes is the first thing that makes a phone
-  // screen feel wrong. Wide screens ignore this and show everything.
-  const [moreOpen, setMoreOpen] = useState(false);
-
   useEffect(() => {
     let alive = true;
     listProposals('pending')
@@ -68,16 +53,12 @@ export default function Layout() {
             </span>
           </Link>
 
-          <button
-            type="button"
-            className="sidebar-more"
-            aria-expanded={moreOpen}
-            aria-controls="sidebar-more-panel"
-            onClick={() => setMoreOpen((open) => !open)}
-          >
-            <span>{moreOpen ? 'Hide' : 'Settings'}</span>
-            <span aria-hidden="true">{moreOpen ? '▲' : '▼'}</span>
-          </button>
+          {/* One tap to the menu page, which now holds everything that used to
+              fold out of this rail: text size, the account, and sign out. */}
+          <Link className="sidebar-more" to="/menu">
+            <span>Menu</span>
+            <span aria-hidden="true">›</span>
+          </Link>
         </div>
 
         <nav className="nav">
@@ -98,58 +79,20 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div id="sidebar-more-panel" className={moreOpen ? 'sidebar-foot is-open' : 'sidebar-foot'}>
-          <div className="foot-block">
-            <p className="foot-label" id="text-size-label">
-              Text size
-            </p>
-            <div className="size-switch" role="group" aria-labelledby="text-size-label">
-              {TEXT_SIZES.map((size) => (
-                <button
-                  key={size.value}
-                  type="button"
-                  aria-pressed={textSize === size.value}
-                  onClick={() => setTextSize(size.value)}
-                >
-                  {size.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Who you are, as a card you can press: the address is long, so it is
-              set on one line and cut with an ellipsis rather than wrapped into a
-              second row of tiny monospace. */}
-          <Link className="foot-who" to="/profile" title={user?.email}>
-            <span className="foot-monogram" aria-hidden="true">
-              {(user?.email ?? '?').charAt(0).toUpperCase()}
-            </span>
-            <span className="foot-who-text">
-              <small>Signed in as</small>
-              <b>{user?.email}</b>
-            </span>
-          </Link>
-
-          <nav className="foot-nav" aria-label="Your account">
-            {ACCOUNT.map((item) => (
-              <NavLink key={item.to} to={item.to}>
-                {item.label}
-              </NavLink>
-            ))}
-            <a href="/admin">Admin console</a>
-          </nav>
-
-          {/* the small print is not the account: it sits on its own line, smaller */}
-          <nav className="foot-fine" aria-label="About ECHO">
-            <NavLink to="/help">Questions</NavLink>
-            <NavLink to="/privacy">Privacy</NavLink>
-            <NavLink to="/architecture">Architecture</NavLink>
-          </nav>
-
-          <button type="button" className="foot-signout" onClick={signOut}>
-            Sign out
-          </button>
-        </div>
+        {/* Who you are, and the way into the menu. On a phone the whole rail is
+            a bar, so this card is hidden there and the Menu button stands in. */}
+        <Link className="foot-who" to="/menu">
+          <span className="foot-monogram" aria-hidden="true">
+            {(user?.email ?? '?').charAt(0).toUpperCase()}
+          </span>
+          <span className="foot-who-text">
+            <small>Signed in as</small>
+            <b>{user?.email}</b>
+          </span>
+          <span className="foot-go" aria-hidden="true">
+            ›
+          </span>
+        </Link>
       </aside>
 
       <main className="main">

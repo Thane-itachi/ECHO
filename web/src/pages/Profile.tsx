@@ -72,7 +72,7 @@ export default function Profile() {
       <section className="report-section">
         <h2 className="section-title">Text size</h2>
         <p className="stat-hint">
-          The same three sizes as the sidebar. It applies to the whole app and is remembered on this device.
+          The same three sizes as the menu page. It applies to the whole app and is remembered on this device.
         </p>
         <div className="text-size-buttons profile-sizes">
           {TEXT_SIZES.map((size) => (

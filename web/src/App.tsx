@@ -22,6 +22,7 @@ import Help from './pages/Help';
 import Home from './pages/Home';
 import HowItWorks from './pages/HowItWorks';
 import Login from './pages/Login';
+import Menu from './pages/Menu';
 import People from './pages/People';
 import Privacy from './pages/Privacy';
 import Proposals from './pages/Proposals';
@@ -106,6 +107,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/security" element={<AccountSecurity />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/menu" element={<Menu />} />
           <Route path="/architecture" element={<Architecture />} />
           <Route path="/login" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

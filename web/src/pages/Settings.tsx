@@ -48,7 +48,7 @@ export default function Settings() {
           <div className="set-row">
             <span>
               <b>Text size</b>
-              <small>The whole app, remembered on this device. The sidebar has the same three buttons.</small>
+              <small>The whole app, remembered on this device. The menu page has the same three buttons.</small>
             </span>
             <span className="text-size-buttons">
               {TEXT_SIZES.map((size) => (
