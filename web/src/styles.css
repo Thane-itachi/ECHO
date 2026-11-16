@@ -4412,3 +4412,240 @@ button.chip,
   align-items: center;
   min-height: 2.75rem;
 }
+
+/* ============================================================================
+   The account fold, redrawn.
+
+   It used to be six outlined boxes in a two-column grid, which read as six
+   competing buttons and broke "Your account" across two lines. It is now three
+   quiet things on the dark rail: one segmented control for the text size, one
+   card telling you who you are signed in as, and a plain menu of words with
+   nothing boxed. Sign out sits alone at the end so it is never pressed by
+   accident on the way to Settings.
+   ========================================================================== */
+
+.sidebar-foot {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: auto;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--panel-rule);
+}
+
+.foot-block {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.foot-label {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #9a9081;
+}
+
+/* one control with three choices, not three buttons */
+.size-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.size-switch button {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #cdc4b4;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 140ms var(--ease), color 140ms var(--ease);
+}
+
+.size-switch button:hover:not([aria-pressed='true']) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.size-switch button[aria-pressed='true'] {
+  background: var(--leather);
+  color: #ffffff;
+}
+
+/* who you are: a monogram, the address on one line, and no wrapping */
+.foot-who {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.1rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms var(--ease), border-color 140ms var(--ease);
+}
+
+.foot-who:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.foot-monogram {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.05rem;
+  height: 2.05rem;
+  border-radius: 50%;
+  background: var(--leather);
+  color: #ffffff;
+  font-family: var(--mark);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.foot-who-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.foot-who-text small {
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #9a9081;
+}
+
+.foot-who-text b {
+  overflow: hidden;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #f2ece0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the menu: words on a rail, hairlines only */
+.foot-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.foot-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.65rem;
+  background: var(--panel);
+  color: #d9d0c1;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 140ms var(--ease), color 140ms var(--ease);
+}
+
+.foot-nav a:hover {
+  background: var(--panel-2);
+  color: #ffffff;
+}
+
+.foot-nav a[aria-current='page'] {
+  background: #23334a;
+  color: #dbe8f8;
+}
+
+.foot-signout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #b7ad9d;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 140ms var(--ease), color 140ms var(--ease);
+}
+
+.foot-signout:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+@media (max-width: 560px) {
+  .sidebar-foot {
+    gap: 0.8rem;
+    padding-top: 0.95rem;
+  }
+
+  .foot-nav a {
+    min-height: 3rem;
+    font-size: 0.9rem;
+  }
+
+  .foot-signout {
+    min-height: 3rem;
+  }
+}
+
+/* the small print, on one line under the account menu */
+.foot-fine {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: -0.35rem;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.foot-fine a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 0.4rem;
+  background: var(--panel);
+  color: #a79d8d;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 140ms var(--ease), color 140ms var(--ease);
+}
+
+.foot-fine a:hover,
+.foot-fine a[aria-current='page'] {
+  background: var(--panel-2);
+  color: #ffffff;
+}
+
+@media (min-width: 561px) {
+  .sidebar-foot {
+    gap: 0.72rem;
+    padding-top: 0.9rem;
+  }
+}

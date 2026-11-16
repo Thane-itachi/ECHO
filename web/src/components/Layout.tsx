@@ -99,9 +99,11 @@ export default function Layout() {
         </nav>
 
         <div id="sidebar-more-panel" className={moreOpen ? 'sidebar-foot is-open' : 'sidebar-foot'}>
-          <div className="text-size">
-            <span>Text size</span>
-            <div className="text-size-buttons">
+          <div className="foot-block">
+            <p className="foot-label" id="text-size-label">
+              Text size
+            </p>
+            <div className="size-switch" role="group" aria-labelledby="text-size-label">
               {TEXT_SIZES.map((size) => (
                 <button
                   key={size.value}
@@ -114,33 +116,39 @@ export default function Layout() {
               ))}
             </div>
           </div>
-          <div className="account">
-            <span className="account-label">Signed in as</span>
-            <span className="account-email">{user?.email}</span>
-          </div>
-          <div className="sidebar-links">
+
+          {/* Who you are, as a card you can press: the address is long, so it is
+              set on one line and cut with an ellipsis rather than wrapped into a
+              second row of tiny monospace. */}
+          <Link className="foot-who" to="/profile" title={user?.email}>
+            <span className="foot-monogram" aria-hidden="true">
+              {(user?.email ?? '?').charAt(0).toUpperCase()}
+            </span>
+            <span className="foot-who-text">
+              <small>Signed in as</small>
+              <b>{user?.email}</b>
+            </span>
+          </Link>
+
+          <nav className="foot-nav" aria-label="Your account">
             {ACCOUNT.map((item) => (
-              <Link key={item.to} className="ghost-button" to={item.to}>
+              <NavLink key={item.to} to={item.to}>
                 {item.label}
-              </Link>
+              </NavLink>
             ))}
-            <Link className="ghost-button" to="/help">
-              Questions
-            </Link>
-            <Link className="ghost-button" to="/privacy">
-              Privacy
-            </Link>
-            <Link className="ghost-button" to="/architecture">
-              Architecture
-            </Link>
-          </div>
-          <a className="ghost-button" href="/admin">
-            Admin console
-          </a>
-          <button type="button" className="ghost-button" onClick={signOut}>
+            <a href="/admin">Admin console</a>
+          </nav>
+
+          {/* the small print is not the account: it sits on its own line, smaller */}
+          <nav className="foot-fine" aria-label="About ECHO">
+            <NavLink to="/help">Questions</NavLink>
+            <NavLink to="/privacy">Privacy</NavLink>
+            <NavLink to="/architecture">Architecture</NavLink>
+          </nav>
+
+          <button type="button" className="foot-signout" onClick={signOut}>
             Sign out
           </button>
-          <p className="sidebar-note">Everything here is sealed with your own key.</p>
         </div>
       </aside>
 
