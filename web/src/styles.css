@@ -12,46 +12,46 @@
      anything you can press. Every text/background pair below clears WCAG AA
      for normal text, and running copy clears AAA, so nothing in the app became
      the pretty-but-unreadable kind of dark mode. */
-  --paper: #12151b;
-  --paper-2: #171b23;
-  --paper-3: #1e242e;
-  --ink: #f2f4f7;
-  --ink-2: #dfe4ea;
-  --ink-3: #b9c1cc;
-  --ink-4: #98a1ad;
-  --rule: #333c48;
-  --rule-2: #4b5665;
+  --paper: #0f1613;
+  --paper-2: #131c18;
+  --paper-3: #19241f;
+  --ink: #f2ebdd;
+  --ink-2: #e5dccb;
+  --ink-3: #bcb19c;
+  --ink-4: #9c9280;
+  --rule: #27342d;
+  --rule-2: #3b4b42;
 
   /* Blue means "this does something". Green means "done". Red means "this destroys". */
-  --leather: #2f6bb0;
-  --leather-mark: #8cbcef;
-  --leather-deep: #1d4a80;
-  --leather-wash: #1b2532;
-  --forest: #4aa87a;
-  --forest-wash: #16281f;
-  --ox: #e07a66;
-  --ox-wash: #2a1714;
+  --leather: #c8a45c;
+  --leather-mark: #e3cb96;
+  --leather-deep: #a8853f;
+  --leather-wash: #20221a;
+  --forest: #79bb95;
+  --forest-wash: #16241c;
+  --ox: #dd8371;
+  --ox-wash: #2a1915;
 
   /* The rail is one shade darker than the page, so it still reads as the edge. */
-  --panel: #0b0e13;
-  --panel-2: #12161d;
-  --panel-text: #ffffff;
-  --panel-muted: #c2c9d3;
-  --panel-rule: #262d37;
+  --panel: #0a0f0d;
+  --panel-2: #101714;
+  --panel-text: #f2ebdd;
+  --panel-muted: #bdb3a0;
+  --panel-rule: #232f28;
 
   /* soft fills, fields and rings: the parts that used to be "a little white" */
   --fill-weak: rgba(255, 255, 255, 0.035);
   --fill: rgba(255, 255, 255, 0.055);
   --fill-soft: rgba(255, 255, 255, 0.045);
   --fill-strong: rgba(255, 255, 255, 0.08);
-  --field: #1f2733;
-  --focus-ring: rgba(140, 188, 239, 0.22);
-  --selection: rgba(140, 188, 239, 0.26);
-  --accent-line: rgba(140, 188, 239, 0.4);
-  --ox-line: rgba(224, 122, 102, 0.45);
-  --disabled-bg: #252d38;
-  --disabled-ink: #98a1ad;
-  --on-accent: #ffffff;
+  --field: #17211b;
+  --focus-ring: rgba(227, 203, 150, 0.22);
+  --selection: rgba(200, 164, 92, 0.26);
+  --accent-line: rgba(200, 164, 92, 0.42);
+  --ox-line: rgba(221, 131, 113, 0.45);
+  --disabled-bg: #25302a;
+  --disabled-ink: #a89e8b;
+  --on-accent: #151a12;
 
   --display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
   --reading: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
@@ -4645,5 +4645,87 @@ a.primary-button:hover,
 a.primary-button:active,
 .prose a.primary-button,
 .hero-actions a.primary-button {
+  color: var(--on-accent);
+}
+
+/* ── Library ───────────────────────────────────────────────────────────────
+   The bookish half of the ECHO look: square corners, a serif page, small
+   tracked capitals on anything you press, and a rail whose active row turns
+   dark on brass. Nothing here changes a layout or a size of type. */
+body {
+  line-height: 1.72;
+}
+
+.card,
+.memory-card,
+.stat,
+.field input,
+.field textarea,
+.field select,
+.search,
+.filter,
+.inline-form input,
+.inline-form select {
+  border-radius: 2px;
+}
+
+.primary-button,
+.ghost-button,
+.danger-button {
+  border-radius: 2px;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.chip {
+  border-radius: 2px;
+}
+
+.eyebrow {
+  letter-spacing: 0.26em;
+}
+
+/* the notes themselves are the reading room */
+.detail-body,
+.answer-body,
+.memory-card-snippet {
+  font-family: var(--reading);
+}
+
+/* on brass, text has to turn dark to stay readable */
+.primary-button {
+  color: var(--on-accent);
+}
+
+.primary-button:hover:not(:disabled) {
+  color: var(--on-accent);
+}
+
+.text-size-buttons button {
+  border-color: var(--rule-2);
+  color: var(--panel-text);
+}
+
+.text-size-buttons button[aria-pressed='true'],
+.page .text-size-buttons button[aria-pressed='true'] {
+  color: var(--on-accent);
+}
+
+.primary-button:focus-visible {
+  outline-color: var(--leather-mark);
+}
+
+.nav-item.is-active,
+.nav-item.is-active .nav-label {
+  color: var(--on-accent);
+}
+
+.nav-item.is-active .nav-hint {
+  color: #3b3423;
+}
+
+.foot-monogram,
+.who-monogram {
   color: var(--on-accent);
 }
