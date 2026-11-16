@@ -40,11 +40,21 @@
   --panel-muted: #d6ccbc;
   --panel-rule: #3a3227;
 
-  /* One family for reading and for headings. A serif is lovely and this app used
-     to be set in one; for a reader who is older or out of practice, plain letters,
-     wide spacing and a big size beat any amount of charm. */
-  --display: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --reading: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Two voices, with one rule behind them.
+
+     Anything you read as a sentence is set in Newsreader: a serif drawn for
+     reading on a screen, with open shapes and a calm rhythm, so a note feels
+     like a page rather than a form. Headings share it, which is what makes the
+     page look considered instead of assembled.
+
+     Anything you press, scan or read in passing stays in Karla: menus, buttons,
+     labels, dates, counts, small print. A plain letter is still the clearer one
+     at 15px, and this audience needs that where there is no room to be generous.
+
+     The ECHO name is Instrument Serif, used only as the mark. */
+  --display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --reading: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --mark: 'Instrument Serif', 'Newsreader', Georgia, serif;
   --sans: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
 
@@ -109,9 +119,9 @@ h2,
 h3,
 h4 {
   font-family: var(--display);
-  font-weight: 400;
-  letter-spacing: -0.006em;
-  line-height: 1.06;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.12;
   margin: 0;
   color: var(--ink);
 }
@@ -494,8 +504,11 @@ button {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  min-height: 2.75rem;
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--panel-rule);
+  text-decoration: none;
+  color: inherit;
 }
 
 .brand-text {
@@ -506,10 +519,10 @@ button {
 }
 
 .brand-mark {
-  font-family: var(--display);
-  font-size: 1.16rem;
-  font-weight: 600;
-  letter-spacing: 0.34em;
+  font-family: var(--mark);
+  font-size: 1.22rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
   color: #f4ece0;
 }
 
@@ -687,6 +700,9 @@ button {
 }
 
 .sidebar-details summary {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
   cursor: pointer;
   font-weight: 500;
   color: #c9c0b1;
@@ -704,6 +720,7 @@ button {
 
 .sidebar-form input {
   width: 100%;
+  min-height: 2.75rem;
   padding: 0.4rem 0.5rem;
   border: 1px solid rgba(242, 237, 227, 0.18);
   border-radius: 3px;
@@ -740,10 +757,10 @@ button {
 
 .sidebar-note {
   margin-top: 0.5rem;
-  font-family: var(--display);
+  font-family: var(--sans);
   font-style: italic;
-  font-size: 0.76rem;
-  line-height: 1.45;
+  font-size: 0.86rem;
+  line-height: 1.5;
   color: #6f6555;
 }
 
@@ -884,6 +901,7 @@ button {
 }
 
 .memory-card-snippet {
+  font-family: var(--reading);
   grid-column: 2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -938,8 +956,8 @@ button {
 
 .detail-body {
   font-family: var(--reading);
-  font-size: 1.05rem;
-  line-height: 1.68;
+  font-size: 1.12rem;
+  line-height: 1.78;
   color: #241e16;
   max-width: 62ch;
   white-space: pre-wrap;
@@ -1158,8 +1176,8 @@ button {
 
 .answer-body {
   font-family: var(--reading);
-  font-size: 1.06rem;
-  line-height: 1.7;
+  font-size: 1.12rem;
+  line-height: 1.78;
   color: #241e16;
   white-space: pre-wrap;
 }
@@ -1408,9 +1426,9 @@ button {
 }
 
 .auth-story .wordmark {
-  font-family: var(--display);
+  font-family: var(--mark);
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.4em;
   color: #f4ece0;
 }
@@ -1538,11 +1556,14 @@ button {
 }
 
 .link-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   padding: 0;
   border: 0;
   background: none;
   color: var(--leather);
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   text-align: left;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1881,16 +1902,16 @@ button {
 }
 
 .splash .wordmark {
-  font-family: var(--display);
+  font-family: var(--mark);
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.4em;
   color: var(--ink);
 }
 
 .wordmark {
-  font-family: var(--display);
-  font-weight: 600;
+  font-family: var(--mark);
+  font-weight: 400;
   letter-spacing: 0.34em;
 }
 
@@ -2312,11 +2333,19 @@ body::before {
 h1,
 h2,
 h3,
-.section-title,
+.section-title {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+/* the name is a mark, not a heading: one weight, wide and quiet */
 .wordmark {
-  font-family: var(--sans);
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-family: var(--mark);
+  font-weight: 400;
+  letter-spacing: 0.3em;
   line-height: 1.25;
   color: var(--ink);
 }
@@ -2617,8 +2646,11 @@ summary:focus-visible {
 
 /* --- the sign-in screen --------------------------------------------------- */
 .auth-story h1 {
-  font-size: clamp(2.1rem, 3.6vw, 3rem);
-  font-weight: 800;
+  font-family: var(--mark);
+  font-size: clamp(2.2rem, 3.8vw, 3.15rem);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  line-height: 1.05;
 }
 
 .auth-story h1 em {
@@ -3183,10 +3215,10 @@ summary:focus-visible {
 }
 
 .public-wordmark {
-  font-family: var(--display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.3em;
+  font-family: var(--mark);
+  font-size: 1.14rem;
+  font-weight: 400;
+  letter-spacing: 0.26em;
 }
 
 .public-links {
@@ -3250,12 +3282,15 @@ summary:focus-visible {
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(2rem, 5.6vw, 3.2rem);
-  line-height: 1.06;
-  letter-spacing: -0.02em;
+  font-family: var(--mark);
+  font-weight: 400;
+  font-size: clamp(2.15rem, 5.8vw, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.012em;
 }
 
 .hero-em {
+  font-style: italic;
   color: var(--leather);
 }
 
@@ -3263,9 +3298,10 @@ summary:focus-visible {
 .public-lede {
   margin: 0;
   max-width: 48ch;
-  font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+  font-family: var(--reading);
+  font-size: clamp(1.06rem, 1.7vw, 1.24rem);
   color: var(--ink-2);
-  line-height: 1.6;
+  line-height: 1.62;
 }
 
 .hero-actions {
@@ -3339,8 +3375,10 @@ summary:focus-visible {
 
 .public-card p {
   margin: 0;
+  font-family: var(--reading);
   color: var(--ink-2);
-  font-size: 0.98rem;
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 /* ---- bands and steps ------------------------------------------------------ */
@@ -3414,16 +3452,21 @@ summary:focus-visible {
 }
 
 .prose p {
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.7rem;
+  font-family: var(--reading);
+  font-size: 1.06rem;
   color: var(--ink-2);
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .prose ul {
   display: grid;
-  gap: 0.35rem;
-  margin: 0 0 0.6rem;
+  gap: 0.4rem;
+  margin: 0 0 0.7rem;
   padding-left: 1.2rem;
+  font-family: var(--reading);
+  font-size: 1.05rem;
+  line-height: 1.6;
   color: var(--ink-2);
 }
 
@@ -3436,8 +3479,10 @@ summary:focus-visible {
   border-left: 3px solid var(--leather);
   border-radius: 0 4px 4px 0;
   background: var(--paper-3);
+  font-family: var(--reading);
   color: var(--ink);
-  font-size: 0.98rem;
+  font-size: 1.02rem;
+  line-height: 1.6;
 }
 
 .prose-actions {
@@ -3479,9 +3524,11 @@ summary:focus-visible {
 }
 
 .faq details p {
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.95rem;
+  font-family: var(--reading);
+  font-size: 1.04rem;
   color: var(--ink-2);
-  line-height: 1.6;
+  line-height: 1.68;
 }
 
 .faq a {
