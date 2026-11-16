@@ -108,6 +108,10 @@ export default function Vault() {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [page, setPage] = useState<Page<Memory> | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // On a phone the list and the note cannot both have the screen, so tapping a
+  // note turns the page over instead of pushing the reading down the list. Wide
+  // screens ignore this: the two columns are shown together as they always were.
+  const [reading, setReading] = useState(false);
   const [composing, setComposing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -191,6 +195,7 @@ export default function Vault() {
     try {
       await deleteMemory(memory.id);
       setSelectedId(null);
+      setReading(false);
       refresh();
     } catch (caught) {
       if (!handleAuthFailure(caught)) setError(errorMessage(caught));
@@ -218,6 +223,7 @@ export default function Vault() {
           onClick={() => {
             setComposing(true);
             setEditing(false);
+            setReading(true);
             setError(null);
           }}
         >
@@ -253,7 +259,7 @@ export default function Vault() {
 
       {error ? <p className="form-error">{error}</p> : null}
 
-      <div className="vault">
+      <div className={reading ? 'vault is-reading' : 'vault'}>
         <div className="vault-list">
           {items.length === 0 && !composing ? (
             <div className="empty">
@@ -275,6 +281,7 @@ export default function Vault() {
                 setSelectedId(memory.id);
                 setComposing(false);
                 setEditing(false);
+                setReading(true);
                 setError(null);
               }}
             >
@@ -291,6 +298,18 @@ export default function Vault() {
         </div>
 
         <div className="vault-detail">
+          <button
+            type="button"
+            className="vault-back"
+            onClick={() => {
+              setReading(false);
+              setComposing(false);
+              setEditing(false);
+              setError(null);
+            }}
+          >
+            ← Back to all my notes
+          </button>
           {showForm ? (
             <MemoryForm
               key={composing ? 'create' : selected?.id ?? 'edit'}
@@ -306,6 +325,7 @@ export default function Vault() {
               onCancel={() => {
                 setComposing(false);
                 setEditing(false);
+                setReading(false);
                 setError(null);
               }}
             />

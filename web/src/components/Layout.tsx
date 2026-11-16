@@ -10,12 +10,12 @@ import { useAuth } from '../lib/auth';
 /* Plain words, each with a picture. "Vault" and "captures" are the sort of words
    that mean nothing to someone who has not spent their life in software. */
 const NAV = [
-  { to: '/vault', label: 'My notes', hint: 'Everything you have saved', icon: 'notes' },
-  { to: '/ask', label: 'Ask a question', hint: 'Find one thing you saved', icon: 'ask' },
-  { to: '/people', label: 'People', hint: 'Names you have saved', icon: 'people' },
-  { to: '/proposals', label: 'Things to check', hint: 'ECHO found these. Say yes or no.', icon: 'check' },
-  { to: '/reminders', label: 'Reminders', hint: 'Dates you must not miss', icon: 'bell' },
-  { to: '/documents', label: 'Files', hint: 'Papers and pictures you added', icon: 'files' },
+  { to: '/vault', label: 'My notes', short: 'Notes', hint: 'Everything you have saved', icon: 'notes' },
+  { to: '/ask', label: 'Ask a question', short: 'Ask', hint: 'Find one thing you saved', icon: 'ask' },
+  { to: '/people', label: 'People', short: 'People', hint: 'Names you have saved', icon: 'people' },
+  { to: '/proposals', label: 'Things to check', short: 'To check', hint: 'ECHO found these. Say yes or no.', icon: 'check' },
+  { to: '/reminders', label: 'Reminders', short: 'Reminders', hint: 'Dates you must not miss', icon: 'bell' },
+  { to: '/documents', label: 'Files', short: 'Files', hint: 'Papers and pictures you added', icon: 'files' },
 ];
 
 type TextSize = 'normal' | 'large' | 'largest';
@@ -53,6 +53,10 @@ export default function Layout() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [textSize, setTextSize] = useState<TextSize>(savedTextSize);
+  // Phones show the six destinations and fold the rest of the sidebar away:
+  // a settings column above the notes is the first thing that makes a phone
+  // screen feel wrong. Wide screens ignore this and show everything.
+  const [moreOpen, setMoreOpen] = useState(false);
 
   async function toggleSignInCode(enabled: boolean) {
     setOtpBusy(true);
@@ -166,12 +170,25 @@ export default function Layout() {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <div className="brand">
-          <EchoMark size={34} />
-          <span className="brand-text">
-            <span className="brand-mark">ECHO</span>
-            <span className="brand-tagline">never forget what matters</span>
-          </span>
+        <div className="sidebar-top">
+          <div className="brand">
+            <EchoMark size={34} />
+            <span className="brand-text">
+              <span className="brand-mark">ECHO</span>
+              <span className="brand-tagline">never forget what matters</span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="sidebar-more"
+            aria-expanded={moreOpen}
+            aria-controls="sidebar-more-panel"
+            onClick={() => setMoreOpen((open) => !open)}
+          >
+            <span>{moreOpen ? 'Hide' : 'Settings'}</span>
+            <span aria-hidden="true">{moreOpen ? '▲' : '▼'}</span>
+          </button>
         </div>
 
         <nav className="nav">
@@ -183,7 +200,8 @@ export default function Layout() {
             >
               <NavIcon name={item.icon} />
               <span className="nav-label">
-                {item.label}
+                <span className="nav-long">{item.label}</span>
+                <span className="nav-short">{item.short}</span>
                 {item.to === '/proposals' && pending ? <span className="badge">{pending}</span> : null}
               </span>
               <span className="nav-hint">{item.hint}</span>
@@ -191,7 +209,8 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="sidebar-foot">
+
+        <div id="sidebar-more-panel" className={moreOpen ? 'sidebar-foot is-open' : 'sidebar-foot'}>
           <div className="text-size">
             <span>Text size</span>
             <div className="text-size-buttons">
