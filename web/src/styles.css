@@ -7,59 +7,60 @@
    ========================================================================== */
 
 :root {
-  /* ---- Easy reading palette -------------------------------------------------
-     Near-black ink on warm white paper, and one strong blue for anything you can
-     press. Every text/background pair below clears WCAG AA for normal text, and
-     the body copy clears AAA: the point of this theme is that it can be read by
-     someone who left their glasses in the other room, in daylight, without
-     guessing what a colour means. */
-  --paper: #f7f2e9;
-  --paper-2: #ffffff;
-  --paper-3: #efe8db;
-  --ink: #14100b;
-  --ink-2: #332c24;
-  --ink-3: #4e463b;
-  --ink-4: #6b6153;
-  --rule: #d8cebc;
-  --rule-2: #b3a691;
+  /* ---- Midnight -----------------------------------------------------------
+     The same archive at night: charcoal paper, pale ink, one steel blue for
+     anything you can press. Every text/background pair below clears WCAG AA
+     for normal text, and running copy clears AAA, so nothing in the app became
+     the pretty-but-unreadable kind of dark mode. */
+  --paper: #12151b;
+  --paper-2: #171b23;
+  --paper-3: #1e242e;
+  --ink: #f2f4f7;
+  --ink-2: #dfe4ea;
+  --ink-3: #b9c1cc;
+  --ink-4: #98a1ad;
+  --rule: #333c48;
+  --rule-2: #4b5665;
 
   /* Blue means "this does something". Green means "done". Red means "this destroys". */
-  --leather: #10457e;
-  --leather-mark: #0c3765;
-  --leather-deep: #082a4e;
-  --leather-wash: #e4edf8;
-  --forest: #17603d;
-  --forest-wash: #e1f1e7;
-  --ox: #a32115;
-  --ox-wash: #fbe7e3;
+  --leather: #2f6bb0;
+  --leather-mark: #8cbcef;
+  --leather-deep: #1d4a80;
+  --leather-wash: #1b2532;
+  --forest: #4aa87a;
+  --forest-wash: #16281f;
+  --ox: #e07a66;
+  --ox-wash: #2a1714;
 
-  /* The sidebar keeps a dark ground, with white text rather than grey. */
-  --panel: #17130e;
-  --panel-2: #221c14;
+  /* The rail is one shade darker than the page, so it still reads as the edge. */
+  --panel: #0b0e13;
+  --panel-2: #12161d;
   --panel-text: #ffffff;
-  --panel-muted: #d6ccbc;
-  --panel-rule: #3a3227;
+  --panel-muted: #c2c9d3;
+  --panel-rule: #262d37;
 
-  /* Two voices, with one rule behind them.
+  /* soft fills, fields and rings: the parts that used to be "a little white" */
+  --fill-weak: rgba(255, 255, 255, 0.035);
+  --fill: rgba(255, 255, 255, 0.055);
+  --fill-soft: rgba(255, 255, 255, 0.045);
+  --fill-strong: rgba(255, 255, 255, 0.08);
+  --field: #1f2733;
+  --focus-ring: rgba(140, 188, 239, 0.22);
+  --selection: rgba(140, 188, 239, 0.26);
+  --accent-line: rgba(140, 188, 239, 0.4);
+  --ox-line: rgba(224, 122, 102, 0.45);
+  --disabled-bg: #252d38;
+  --disabled-ink: #98a1ad;
+  --on-accent: #ffffff;
 
-     Anything you read as a sentence is set in Newsreader: a serif drawn for
-     reading on a screen, with open shapes and a calm rhythm, so a note feels
-     like a page rather than a form. Headings share it, which is what makes the
-     page look considered instead of assembled.
-
-     Anything you press, scan or read in passing stays in Karla: menus, buttons,
-     labels, dates, counts, small print. A plain letter is still the clearer one
-     at 15px, and this audience needs that where there is no room to be generous.
-
-     The ECHO name is Instrument Serif, used only as the mark. */
   --display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
   --reading: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
   --mark: 'Instrument Serif', 'Newsreader', Georgia, serif;
   --sans: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
 
-  --shadow-sheet: 0 1px 0 rgba(23, 19, 14, 0.05), 0 18px 40px -28px rgba(23, 19, 14, 0.35);
-  --shadow-lift: 0 1px 0 rgba(23, 19, 14, 0.06), 0 26px 52px -30px rgba(23, 19, 14, 0.4);
+  --shadow-sheet: 0 1px 0 rgba(0, 0, 0, 0.35), 0 18px 40px -28px rgba(0, 0, 0, 0.8);
+  --shadow-lift: 0 1px 0 rgba(0, 0, 0, 0.4), 0 26px 52px -30px rgba(0, 0, 0, 0.9);
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
@@ -148,7 +149,7 @@ p {
 }
 
 a {
-  color: var(--leather);
+  color: var(--leather-mark);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
@@ -170,7 +171,7 @@ button {
 }
 
 ::selection {
-  background: rgba(140, 74, 43, 0.18);
+  background: var(--selection);
 }
 
 :focus-visible {
@@ -271,7 +272,7 @@ button {
 
 .primary-button:hover:not(:disabled) {
   background: var(--leather);
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
 }
 
 .primary-button:active:not(:disabled) {
@@ -291,13 +292,13 @@ button {
 
 .danger-button {
   background: transparent;
-  border-color: #e3c8bd;
+  border-color: var(--rule-2);
   color: var(--ox);
 }
 
 .danger-button:hover:not(:disabled) {
   background: var(--ox-wash);
-  border-color: rgba(147, 53, 42, 0.35);
+  border-color: var(--ox-line);
 }
 
 .primary-button:disabled,
@@ -315,7 +316,7 @@ button {
   padding: 0.16rem 0.42rem;
   border: 1px solid var(--rule-2);
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--fill-chip, rgba(255, 255, 255, 0.055));
   font-family: var(--sans);
   font-size: 0.62rem;
   font-weight: 700;
@@ -326,7 +327,7 @@ button {
 }
 
 .chip-ai {
-  border-color: rgba(140, 74, 43, 0.32);
+  border-color: var(--accent-line);
   background: var(--leather-wash);
   color: var(--leather-deep);
 }
@@ -345,7 +346,7 @@ button {
   padding: 0 0.25rem;
   border-radius: 999px;
   background: var(--leather);
-  color: #fbeee5;
+  color: var(--on-accent);
   font-family: var(--mono);
   font-size: 0.66rem;
   font-weight: 600;
@@ -387,7 +388,7 @@ button {
   padding: 0.6rem 0.72rem;
   border: 1px solid var(--rule-2);
   border-radius: 4px;
-  background: var(--paper-2);
+  background: var(--field);
   color: var(--ink);
   font-size: 0.94rem;
   transition: border-color 140ms var(--ease), box-shadow 140ms var(--ease),
@@ -417,15 +418,15 @@ button {
 .filter:focus {
   outline: none;
   border-color: var(--ink);
-  background: #fffdf8;
-  box-shadow: 0 0 0 3px rgba(140, 74, 43, 0.13);
+  background: var(--field);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .form-error {
   padding: 0.55rem 0.75rem;
   border-left: 2px solid var(--ox);
   background: var(--ox-wash);
-  color: #74241b;
+  color: var(--ox);
   font-size: 0.86rem;
 }
 
@@ -447,7 +448,7 @@ button {
 }
 
 .toggle input {
-  accent-color: var(--leather);
+  accent-color: var(--leather-mark);
   width: 1rem;
   height: 1rem;
 }
@@ -477,7 +478,7 @@ button {
 
 .tab.is-active {
   color: var(--ink);
-  border-bottom-color: var(--leather);
+  border-bottom-color: var(--leather-mark);
 }
 
 /* -------------------------------------------------------------------- shell */
@@ -564,7 +565,7 @@ button {
   font-family: var(--mono);
   font-size: 0.66rem;
   letter-spacing: 0.06em;
-  color: #6d6354;
+  color: var(--ink-4);
   text-align: left;
   transition: color 140ms var(--ease);
 }
@@ -671,7 +672,7 @@ button {
 
 .sidebar-toggle input {
   margin-top: 0.15rem;
-  accent-color: var(--leather);
+  accent-color: var(--leather-mark);
 }
 
 .sidebar-toggle small {
@@ -758,7 +759,7 @@ button {
   font-style: italic;
   font-size: 0.86rem;
   line-height: 1.5;
-  color: #6f6555;
+  color: var(--ink-4);
 }
 
 .main {
@@ -803,7 +804,7 @@ button {
 .search {
   flex: 1 1 15rem;
   padding-left: 2.15rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c6152' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4.2-4.2'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aab4c2' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4.2-4.2'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: 0.72rem center;
 }
@@ -811,7 +812,7 @@ button {
 .filter {
   flex: 0 1 11rem;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236c6152' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aab4c2' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.7rem center;
   padding-right: 1.9rem;
@@ -862,20 +863,20 @@ button {
 }
 
 .memory-card:hover {
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--fill-soft);
 }
 
 .memory-card:hover::before {
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 .memory-card.is-active {
   background: var(--paper-2);
-  border-left-color: var(--leather);
+  border-left-color: var(--leather-mark);
 }
 
 .memory-card.is-active::before {
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 .memory-card-top {
@@ -955,7 +956,7 @@ button {
   font-family: var(--reading);
   font-size: 1.02rem;
   line-height: 1.72;
-  color: #241e16;
+  color: var(--ink);
   max-width: 62ch;
   white-space: pre-wrap;
 }
@@ -1048,7 +1049,7 @@ button {
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--rule);
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--fill);
   font-size: 0.88rem;
 }
 
@@ -1081,7 +1082,7 @@ button {
   padding: 2rem 1.4rem;
   border: 1px dashed var(--rule-2);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--fill-weak);
   color: var(--ink-3);
   max-width: 46ch;
 }
@@ -1122,8 +1123,8 @@ button {
 .ask-bar input:focus {
   outline: none;
   border-color: var(--ink);
-  background: #fffdf8;
-  box-shadow: 0 0 0 3px rgba(140, 74, 43, 0.13);
+  background: var(--field);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .suggestions {
@@ -1146,7 +1147,7 @@ button {
 }
 
 .suggestions .chip:hover {
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   color: var(--leather-deep);
   background: var(--leather-wash);
 }
@@ -1175,7 +1176,7 @@ button {
   font-family: var(--reading);
   font-size: 1.02rem;
   line-height: 1.72;
-  color: #241e16;
+  color: var(--ink);
   white-space: pre-wrap;
 }
 
@@ -1202,7 +1203,7 @@ button {
   content: '[' counter(cite) ']';
   font-family: var(--mono);
   font-size: 0.72rem;
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 /* ----------------------------------------------------------------- captures */
@@ -1212,7 +1213,7 @@ button {
   padding: 1.15rem;
   border: 1px solid var(--rule);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--fill-soft);
 }
 
 .capture-form {
@@ -1243,14 +1244,14 @@ button {
 }
 
 .proposal:hover {
-  border-left-color: var(--leather);
+  border-left-color: var(--leather-mark);
 }
 
 .proposal-body {
   font-family: var(--reading);
   font-size: 1rem;
   line-height: 1.65;
-  color: #241e16;
+  color: var(--ink);
 }
 
 .proposal-quote {
@@ -1522,7 +1523,7 @@ button {
   padding: 0.55rem 0.75rem;
   border-left: 2px solid var(--forest);
   background: var(--forest-wash);
-  color: #1f3d34;
+  color: var(--forest);
   font-size: 0.86rem;
 }
 
@@ -1559,7 +1560,7 @@ button {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--leather);
+  color: var(--leather-mark);
   font-size: 0.9rem;
   text-align: left;
   text-decoration: underline;
@@ -1836,7 +1837,7 @@ button {
 }
 
 .admin-table tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--fill-strong);
 }
 
 .event-list {
@@ -2069,7 +2070,7 @@ button {
   font-family: var(--display);
   font-style: italic;
   font-size: 0.82rem;
-  color: #7d7362;
+  color: var(--ink-4);
 }
 
 /* ------------------------------------------------------------------ footer */
@@ -2221,7 +2222,7 @@ h3 {
   display: block;
   flex: none;
   --mark-tile-hi: var(--leather);
-  --mark-tile-lo: #743a20;
+  --mark-tile-lo: var(--leather-deep);
   --mark-ink: #fbf7f0;
 }
 
@@ -2411,7 +2412,7 @@ button.ghost-button {
 
 .primary-button {
   background: var(--leather);
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   color: #ffffff;
 }
 
@@ -2422,9 +2423,9 @@ button.ghost-button {
 
 .primary-button:disabled {
   opacity: 1;
-  background: #d7cfc0;
-  border-color: #d7cfc0;
-  color: #5b5346;
+  background: var(--disabled-bg);
+  border-color: var(--disabled-bg);
+  color: var(--disabled-ink);
 }
 
 .link-button {
@@ -2492,9 +2493,9 @@ summary:focus-visible {
 .inline-form input:focus,
 .search:focus,
 .filter:focus {
-  border-color: var(--leather);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(16, 69, 126, 0.16);
+  border-color: var(--leather-mark);
+  background: var(--field);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .field > small,
@@ -2616,7 +2617,7 @@ summary:focus-visible {
 
 .text-size-buttons button[aria-pressed='true'] {
   background: var(--leather);
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   color: #ffffff;
 }
 
@@ -2972,7 +2973,7 @@ summary:focus-visible {
 
   .nav-item.is-active {
     background: var(--leather);
-    border-color: var(--leather);
+    border-color: var(--leather-mark);
   }
 
   /* the rest of the sidebar is one tap away, not one screen of scrolling */
@@ -3281,7 +3282,7 @@ summary:focus-visible {
 
 .hero-em {
   font-style: italic;
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 .hero-lede,
@@ -3354,7 +3355,7 @@ summary:focus-visible {
 }
 
 .public-card-icon {
-  color: var(--leather);
+  color: var(--leather-mark);
   line-height: 0;
 }
 
@@ -3417,7 +3418,7 @@ summary:focus-visible {
   font-family: var(--mono);
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 .steps strong {
@@ -3461,7 +3462,7 @@ summary:focus-visible {
 }
 
 .prose a {
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 .example {
@@ -3510,7 +3511,7 @@ summary:focus-visible {
 }
 
 .faq summary::marker {
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 .faq details p {
@@ -3522,7 +3523,7 @@ summary:focus-visible {
 }
 
 .faq a {
-  color: var(--leather);
+  color: var(--leather-mark);
 }
 
 /* ---- the foot of a public page ------------------------------------------- */
@@ -3907,15 +3908,15 @@ summary:focus-visible {
   min-width: 0;
   min-height: 2.8rem;
   padding: 0.3rem 0.7rem;
-  border: 2px solid var(--rule);
+  border: 2px solid var(--rule-2);
   border-radius: 8px;
-  background: var(--paper);
+  background: var(--field);
   color: var(--ink);
   font: inherit;
 }
 
 .dock-form input:focus {
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   outline: none;
 }
 
@@ -3932,9 +3933,9 @@ summary:focus-visible {
 }
 
 .dock-form button:disabled {
-  border-color: #d7cfc0;
-  background: #d7cfc0;
-  color: #5b5346;
+  border-color: var(--disabled-bg);
+  background: var(--disabled-bg);
+  color: var(--disabled-ink);
 }
 
 .dock-suggest {
@@ -4014,7 +4015,7 @@ summary:focus-visible {
 
 .report-number {
   margin: 0.1rem 0 0.15rem;
-  color: var(--leather);
+  color: var(--leather-mark);
   font-family: var(--display);
   font-size: clamp(2.2rem, 6vw, 3.2rem);
   line-height: 0.95;
@@ -4143,7 +4144,7 @@ summary:focus-visible {
 
 .page .text-size-buttons button[aria-pressed='true'] {
   background: var(--leather);
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   color: #ffffff;
 }
 
@@ -4231,7 +4232,7 @@ summary:focus-visible {
 }
 
 .switch input:checked + span {
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   background: var(--leather);
 }
 
@@ -4332,7 +4333,7 @@ summary:focus-visible {
 }
 
 .map-card:hover {
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   background: var(--leather-wash);
 }
 
@@ -4423,7 +4424,7 @@ button.chip,
 }
 
 .who-card:hover {
-  border-color: var(--leather);
+  border-color: var(--leather-mark);
   background: var(--leather-wash);
 }
 
@@ -4627,4 +4628,15 @@ button.chip,
   .set-row .text-size-buttons {
     width: 11.5rem;
   }
+}
+
+/* ------------------------------------------------------------------- the end
+   A button that happens to be written as a link keeps its own white label,
+   wherever it sits: after every prose rule, so nothing repaints it blue. */
+a.primary-button,
+a.primary-button:hover,
+a.primary-button:active,
+.prose a.primary-button,
+.hero-actions a.primary-button {
+  color: var(--on-accent);
 }
