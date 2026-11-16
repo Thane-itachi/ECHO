@@ -15,6 +15,7 @@ import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
 import { useAuth } from './lib/auth';
 import Ask from './pages/Ask';
+import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
 import Help from './pages/Help';
 import Home from './pages/Home';
@@ -23,7 +24,12 @@ import Login from './pages/Login';
 import People from './pages/People';
 import Privacy from './pages/Privacy';
 import Proposals from './pages/Proposals';
+import Profile from './pages/Profile';
 import Reminders from './pages/Reminders';
+import Reports from './pages/Reports';
+import Search from './pages/Search';
+import AccountSecurity from './pages/Security';
+import Settings from './pages/Settings';
 import Vault from './pages/Vault';
 
 function Splash() {
@@ -87,14 +93,20 @@ export default function App() {
         <Route path="*" element={<Splash />} />
       ) : user ? (
         <Route element={<Layout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/vault" element={<Vault />} />
           <Route path="/ask" element={<Ask />} />
           <Route path="/people" element={<People />} />
           <Route path="/proposals" element={<Proposals />} />
           <Route path="/reminders" element={<Reminders />} />
           <Route path="/documents" element={<Documents />} />
-          <Route path="/login" element={<Navigate to="/vault" replace />} />
-          <Route path="*" element={<Navigate to="/vault" replace />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/security" element={<AccountSecurity />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       ) : (
         <>

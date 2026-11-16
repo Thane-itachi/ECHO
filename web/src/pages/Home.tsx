@@ -47,8 +47,8 @@ export default function Home() {
         <div className="hero-actions">
           {user ? (
             <>
-              <Link className="primary-button" to="/vault">
-                Open my notes
+              <Link className="primary-button" to="/dashboard">
+                Open ECHO
               </Link>
               <Link className="ghost-button" to="/ask">
                 Ask a question
