@@ -76,17 +76,22 @@ body,
 }
 
 /* Three text sizes, chosen in the sidebar and remembered on this device. Every
-   size in this file is in rem, so this one number grows the whole app. */
+   size in this file is in rem, so this one number scales the whole app.
+
+   The base is 16px: the browser's own default, so the app sits the same size as
+   the rest of the web on the same screen. Big and Huge lift it by about a tenth
+   and a fifth, which is enough to be a real choice without turning the page into
+   a large-print edition. */
 html {
-  font-size: 17.5px;
+  font-size: 16px;
 }
 
 html[data-textsize='large'] {
-  font-size: 19.5px;
+  font-size: 17.5px;
 }
 
 html[data-textsize='largest'] {
-  font-size: 21.5px;
+  font-size: 19.5px;
 }
 
 body {
@@ -95,8 +100,8 @@ body {
   background-color: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 1.02rem;
-  line-height: 1.7;
+  font-size: 0.97rem;
+  line-height: 1.65;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -127,15 +132,15 @@ h4 {
 }
 
 h1 {
-  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  font-size: clamp(1.5rem, 2.2vw, 1.9rem);
 }
 
 h2 {
-  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-size: clamp(1.15rem, 1.6vw, 1.35rem);
 }
 
 h3 {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 p {
@@ -950,14 +955,14 @@ button {
 
 .detail h2 {
   margin-bottom: 0.7rem;
-  font-size: clamp(1.35rem, 2.1vw, 1.7rem);
+  font-size: clamp(1.2rem, 1.7vw, 1.45rem);
   max-width: 32ch;
 }
 
 .detail-body {
   font-family: var(--reading);
-  font-size: 1.12rem;
-  line-height: 1.78;
+  font-size: 1.02rem;
+  line-height: 1.72;
   color: #241e16;
   max-width: 62ch;
   white-space: pre-wrap;
@@ -1176,8 +1181,8 @@ button {
 
 .answer-body {
   font-family: var(--reading);
-  font-size: 1.12rem;
-  line-height: 1.78;
+  font-size: 1.02rem;
+  line-height: 1.72;
   color: #241e16;
   white-space: pre-wrap;
 }
@@ -2170,7 +2175,7 @@ h3 {
 
 .stat-value {
   font-family: var(--reading);
-  font-size: 2.35rem;
+  font-size: 1.95rem;
   font-weight: 400;
   font-variant-numeric: lining-nums tabular-nums;
   letter-spacing: -0.02em;
@@ -2336,9 +2341,14 @@ h3,
 .section-title {
   font-family: var(--display);
   font-weight: 600;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.018em;
   line-height: 1.2;
   color: var(--ink);
+}
+
+.section-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
 }
 
 /* the name is a mark, not a heading: one weight, wide and quiet */
@@ -2351,24 +2361,26 @@ h3,
 }
 
 h1 {
-  font-size: clamp(1.9rem, 3.1vw, 2.5rem);
+  font-size: clamp(1.55rem, 2.2vw, 2rem);
 }
 
 h2 {
-  font-size: 1.35rem;
+  font-size: 1.2rem;
 }
 
+/* tracked capitals read as a label, not as words, so they may go smaller than
+   running text — but not so small that they turn into a grey smudge */
 .eyebrow {
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  letter-spacing: 0.17em;
   color: var(--ink-3);
 }
 
 .page-sub,
 .lede,
 .muted {
-  font-size: 1.02rem;
-  line-height: 1.65;
+  font-size: 0.92rem;
+  line-height: 1.6;
   color: var(--ink-2);
 }
 
@@ -2442,7 +2454,7 @@ button.ghost-button {
 }
 
 .filter {
-  min-height: 2.6rem;
+  min-height: 2.75rem;
   padding: 0.5rem 1rem;
   border-width: 2px;
   border-radius: 999px;
@@ -2607,7 +2619,7 @@ summary:focus-visible {
 }
 
 .text-size-buttons button {
-  min-height: 2.7rem;
+  min-height: 2.75rem;
   border: 2px solid rgba(255, 255, 255, 0.28);
   border-radius: 8px;
   background: transparent;
@@ -2798,10 +2810,10 @@ summary:focus-visible {
   font-size: 0.9rem;
 }
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 .stat-hint {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 .chart-label {
   font-size: 0.86rem;
@@ -4026,7 +4038,7 @@ summary:focus-visible {
   margin: 0.1rem 0 0.15rem;
   color: var(--leather);
   font-family: var(--display);
-  font-size: clamp(3rem, 9vw, 4.6rem);
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
   line-height: 0.95;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -4389,4 +4401,14 @@ summary:focus-visible {
   font-family: var(--sans);
   font-size: 0.76rem;
   font-weight: 700;
+}
+
+/* --- the type pass, 16 November ------------------------------------------
+   Smaller and quieter, but pressed things stay pressable: a suggestion chip is
+   a button, so it gets a button's height even though it reads like a label. */
+button.chip,
+.dock-suggest button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
 }
