@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Card, EmptyState } from '../components/ui';
+
 import {
   ask,
   dueCommitments,
@@ -148,26 +150,18 @@ export default function Dashboard() {
           )}
 
           <div className="stat-grid">
-            <div className="stat-card">
-              <span className="stat-label">Notes kept</span>
-              <span className="stat-value">{brief.memoryTotal}</span>
-              <span className="stat-hint">sealed with your key</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">People</span>
-              <span className="stat-value">{brief.peopleTotal}</span>
-              <span className="stat-hint">names your notes mention</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">Reminders ahead</span>
-              <span className="stat-value">{upcoming.length}</span>
-              <span className="stat-hint">still to come</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">Things to check</span>
-              <span className="stat-value">{brief.proposals.length}</span>
-              <span className="stat-hint">ECHO is waiting on you</span>
-            </div>
+            {[
+              { label: 'Notes kept', value: brief.memoryTotal, hint: 'sealed with your key' },
+              { label: 'People', value: brief.peopleTotal, hint: 'names your notes mention' },
+              { label: 'Reminders ahead', value: upcoming.length, hint: 'still to come' },
+              { label: 'Things to check', value: brief.proposals.length, hint: 'ECHO is waiting on you' },
+            ].map((stat) => (
+              <Card key={stat.label} className="stat-card" tone="quiet">
+                <span className="stat-label">{stat.label}</span>
+                <span className="stat-value">{stat.value}</span>
+                <span className="stat-hint">{stat.hint}</span>
+              </Card>
+            ))}
           </div>
 
           <div className="today">
@@ -175,7 +169,7 @@ export default function Dashboard() {
               <section>
                 <h2 className="section-title">Coming up</h2>
                 {upcoming.length === 0 ? (
-                  <p className="empty">No date is close. When you write one down, it appears here.</p>
+                  <EmptyState title="No date is close">When you write one down, it appears here.</EmptyState>
                 ) : (
                   upcoming.slice(0, 3).map((item) => (
                     <Link key={item.id} className="row-link" to="/reminders">
@@ -226,7 +220,7 @@ export default function Dashboard() {
               <section>
                 <h2 className="section-title">Recently saved</h2>
                 {brief.memories.length === 0 ? (
-                  <p className="empty">Nothing saved yet. The first note is the hardest one.</p>
+                  <EmptyState title="Nothing saved yet">The first note is the hardest one.</EmptyState>
                 ) : (
                   brief.memories.map((memory) => (
                     <Link key={memory.id} className="row-link" to="/vault">
@@ -241,7 +235,7 @@ export default function Dashboard() {
               <section>
                 <h2 className="section-title">Worth a look</h2>
                 {brief.proposals.length === 0 ? (
-                  <p className="empty">Nothing needs a yes or no. ECHO will ask when it finds something.</p>
+                  <EmptyState title="Nothing needs a yes or no">ECHO will ask when it finds something worth keeping.</EmptyState>
                 ) : (
                   brief.proposals.slice(0, 2).map((proposal) => (
                     <Link key={proposal.id} className="row-link" to="/proposals">
