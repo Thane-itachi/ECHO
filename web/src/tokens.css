@@ -61,6 +61,9 @@
   --border: var(--navy-600);
   --border-strong: var(--navy-500);
 
+  /* the logo's own gradient: blue at the top left, violet at the bottom right */
+  --mark-arc-from: #4aa0fb;
+  --mark-arc-to: #7c24f7;
   --brand: var(--violet-450);        /* fills: buttons, active rows */
   --brand-text: var(--violet-400);   /* brand colour as text on this ground */
   --brand-deep: var(--violet-600);   /* hover and pressed */
@@ -151,6 +154,8 @@
    same contrast ratios as the dark theme. */
 [data-theme='light'] {
   --bg: #f7f8fc;
+  --mark-arc-from: #1d7fd6;
+  --mark-arc-to: #6a1fd0;
   --bg-elevated: #ffffff;
   --surface: #ffffff;
   --surface-2: #f1f3f9;

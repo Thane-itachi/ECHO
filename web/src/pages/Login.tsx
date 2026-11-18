@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from '../components/ui';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { EchoMark } from '../components/Logo';
+import { EchoLogo, EchoMark } from '../components/Logo';
 import { ApiError } from '../lib/api';
 import * as api from '../lib/api';
 import { errorMessage, useAuth, useAuthFailureHandler } from '../lib/auth';
@@ -212,10 +212,7 @@ export default function Login() {
     <div className="auth-screen">
       <section className="auth-story">
         <EchoMark size={300} className="auth-watermark" />
-        <div className="auth-lockup">
-          <EchoMark size={42} />
-          <div className="wordmark">ECHO</div>
-        </div>
+        <EchoLogo size={46} tagline className="auth-lockup" />
         <h1>
           Never forget
           <br />

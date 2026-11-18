@@ -1,16 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 216 216" width="64" height="64">
   <defs>
-    <linearGradient id="plate" x1="0.1" y1="0" x2="0.75" y2="1">
-      <stop offset="0" stop-color="#2f6bb0"/>
-      <stop offset="1" stop-color="#1d4a80"/>
+    <linearGradient id="g" x1="0.12" y1="0.04" x2="0.88" y2="0.96">
+      <stop offset="0" stop-color="#4aa0fb"/>
+      <stop offset="1" stop-color="#7c24f7"/>
     </linearGradient>
   </defs>
-  <rect width="48" height="48" rx="11.5" fill="url(#plate)"/>
-  <rect x="4.2" y="4.2" width="39.6" height="39.6" rx="8" fill="none" stroke="#fbf7f0" stroke-width="0.85" opacity="0.26"/>
-  <g fill="none" stroke="#fbf7f0" stroke-width="3.2" stroke-linecap="round">
-    <path d="M19.97 17.64A7.5 7.5 0 0 1 19.97 30.36"/>
-    <path d="M22.89 12.98A13 13 0 0 1 22.89 35.02"/>
-    <path d="M25.8 8.31A18.5 18.5 0 0 1 25.8 39.69"/>
+  <rect width="216" height="216" rx="48" fill="#080d1b"/>
+  <g fill="none" stroke="url(#g)" stroke-width="11" stroke-linecap="round">
+    <path d="M206.23 138.97A103 103 0 1 1 94.56 5.88"/>
+    <path d="M184.30 132.06A80 80 0 1 1 97.56 28.68"/>
+    <path d="M158.55 123.94A53 53 0 1 1 101.08 55.45"/>
   </g>
-  <circle cx="16" cy="24" r="3.2" fill="#fbf7f0"/>
+  <g fill="url(#g)">
+    <circle cx="201.73" cy="150.71" r="11"/>
+    <circle cx="82.21" cy="8.28" r="11"/>
+    <circle cx="180.80" cy="141.18" r="11"/>
+    <circle cx="87.97" cy="30.55" r="11"/>
+  </g>
 </svg>

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { ButtonLink } from './ui';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
-import { EchoMark } from './Logo';
+import { EchoLogo, EchoMark } from './Logo';
 import { useAuth } from '../lib/auth';
 import { TEXT_SIZES, useTextSize } from '../lib/textSize';
 
@@ -33,8 +33,7 @@ export default function PublicLayout() {
     <div className="public-shell">
       <header className="public-header">
         <Link className="public-brand" to="/" aria-label="ECHO home">
-          <EchoMark size={32} />
-          <span className="public-wordmark">ECHO</span>
+          <EchoLogo size={30} />
         </Link>
 
         <nav className="public-links" aria-label="Pages anyone can read">

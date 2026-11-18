@@ -209,3 +209,34 @@ button.chip.is-active,
   background: var(--brand-wash);
   color: var(--brand-text);
 }
+
+/* ---- the lockup -----------------------------------------------------------
+   Mark plus word, as the owner set it. The tagline is optional: it belongs
+   where the brand has room to introduce itself, not in a 34px rail. */
+.echo-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.echo-lockup-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.echo-wordmark {
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: inherit;
+}
+
+.echo-tagline {
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}

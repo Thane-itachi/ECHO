@@ -2188,46 +2188,6 @@ h3 {
 .echo-mark {
   display: block;
   flex: none;
-  --mark-tile-hi: var(--violet-500);
-  --mark-tile-lo: var(--violet-600);
-  --mark-ink: var(--white-50);
-}
-
-/* the hairline press frame: reads as a bookplate at 40px, vanishes at 16px */
-.echo-mark-frame {
-  fill: none;
-  stroke: var(--mark-ink);
-  stroke-width: 0.85;
-  opacity: 0.26;
-}
-
-.echo-mark-rings {
-  fill: none;
-  stroke: var(--mark-ink);
-  stroke-width: 3.2;
-  stroke-linecap: round;
-}
-
-.echo-mark-dot {
-  fill: var(--mark-ink);
-}
-
-/* the letter a beat behind */
-.echo-mark-ghost {
-  fill: var(--mark-ink);
-  opacity: 0.15;
-}
-
-.echo-mark-shine {
-  fill: none;
-  stroke: var(--mark-ink);
-  stroke-width: 0.9;
-  opacity: 0.12;
-}
-
-.admin-shell .echo-mark {
-  --mark-tile-hi: #33604f;
-  --mark-tile-lo: #1f463a;
 }
 
 .auth-story .auth-watermark {
@@ -2241,8 +2201,8 @@ h3 {
 }
 
 .auth-story .auth-watermark .echo-mark {
-  --mark-tile-hi: #f7f1e6;
-  --mark-tile-lo: #e3d7c3;
+  --mark-arc-from: #f7f1e6;
+  --mark-arc-to: #e3d7c3;
   --mark-ink: #16120d;
 }
 
