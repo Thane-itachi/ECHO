@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from typing import Literal
 
@@ -231,15 +231,39 @@ class MemoryList(BaseModel):
 
 
 # ---------------------------------------------------------------------- people
+class KeyDate(StrictModel):
+    """One date worth keeping for a person: a birthday, an anniversary, a renewal."""
+
+    label: str = Field(min_length=1, max_length=60)
+    date: date
+    # 2 = the date repeats every year (a birthday), 1 = it happened once (a wedding
+    # you attended, an expiry). The client decides how to say it; both are stored.
+    repeats_yearly: bool = True
+
+
 class PersonCreate(StrictModel):
     name: str = Field(min_length=1, max_length=160)
     notes: str | None = Field(default=None, max_length=4_000)
+    relationship: str | None = Field(default=None, max_length=120)
+    key_dates: list[KeyDate] = Field(default_factory=list, max_length=24)
+
+
+class PersonUpdate(StrictModel):
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    notes: str | None = Field(default=None, max_length=4_000)
+    relationship: str | None = Field(default=None, max_length=120)
+    key_dates: list[KeyDate] | None = Field(default=None, max_length=24)
 
 
 class PersonRead(BaseModel):
     id: str
     name: str
     notes: str | None
+    relationship: str | None = None
+    key_dates: list[KeyDate] = Field(default_factory=list)
+    # what is still owed between you, so a list of people is also a list of
+    # loose ends rather than a phone book
+    open_commitments: int = 0
     created_at: datetime
 
 
@@ -248,6 +272,44 @@ class PersonList(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+# ---------------------------------------------------------------- commitments
+class CommitmentCreate(StrictModel):
+    kind: Literal["promise", "lent", "borrowed"] = "promise"
+    text: str = Field(min_length=1, max_length=2_000)
+    person_id: str | None = Field(default=None, max_length=36)
+    memory_id: str | None = Field(default=None, max_length=36)
+    due_on: date | None = None
+
+
+class CommitmentUpdate(StrictModel):
+    text: str | None = Field(default=None, min_length=1, max_length=2_000)
+    due_on: date | None = None
+    status: Literal["open", "done", "dropped"] | None = None
+
+
+class CommitmentRead(BaseModel):
+    id: str
+    kind: str
+    text: str
+    due_on: date | None
+    status: str
+    person_id: str | None
+    person_name: str | None = None
+    memory_id: str | None
+    created_at: datetime
+
+
+class CommitmentList(BaseModel):
+    items: list[CommitmentRead]
+    total: int
+
+
+class CommitmentRemind(StrictModel):
+    """Turn a commitment into a reminder. Only the time is asked for."""
+
+    due_at: datetime | None = None
 
 
 # ------------------------------------------------------------------- proposals

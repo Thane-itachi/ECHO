@@ -10,8 +10,12 @@ Nothing readable is written to the database any more:
 """
 from __future__ import annotations
 
+import json
+import logging
+from datetime import date
 from typing import Any
 
+import sqlalchemy as sa
 from sqlalchemy import and_, func, or_, select
 
 from app.core.crypto import (
@@ -22,8 +26,10 @@ from app.core.crypto import (
 )
 from app.core.errors import InvalidRequest
 from app.core.time import utcnow
-from app.db.models import Attachment, Memory, Person, Relationship
+from app.db.models import Attachment, Commitment, Memory, Person, Relationship
 from app.repositories.base import OwnedRepository, OwnershipViolation
+
+logger = logging.getLogger("echo.repositories")
 
 _UNSET: Any = object()
 
@@ -178,11 +184,20 @@ class MemoryRepository(_SearchableRepository):
 class PersonRepository(_SearchableRepository):
     model = Person
 
-    def create(self, *, name: str, notes: str | None = None) -> Person:
+    def create(
+        self,
+        *,
+        name: str,
+        notes: str | None = None,
+        relationship: str | None = None,
+        key_dates: list[dict] | None = None,
+    ) -> Person:
         person = Person(
             user_id=self.owner_id,
             name=name,
             notes_enc=self.cipher.encrypt(notes, self.owner_id) if notes else None,
+            relationship_enc=self._seal(relationship),
+            dates_enc=self._seal_dates(key_dates or []),
             search_index=self._index(name, notes or ""),
         )
         return self.add(person)
@@ -192,13 +207,50 @@ class PersonRepository(_SearchableRepository):
             return None
         return self.cipher.decrypt(person.notes_enc, self.owner_id)
 
-    def update(self, person: Person, *, name: Any = _UNSET, notes: Any = _UNSET) -> Person:
+    def _seal(self, value: str | None) -> str | None:
+        return self.cipher.encrypt(value, self.owner_id) if value else None
+
+    def _seal_dates(self, dates: list[dict]) -> str | None:
+        if not dates:
+            return None
+        return self.cipher.encrypt(json.dumps(dates, separators=(",", ":")), self.owner_id)
+
+    def read_relationship(self, person: Person) -> str | None:
+        if not person.relationship_enc:
+            return None
+        return self.cipher.decrypt(person.relationship_enc, self.owner_id)
+
+    def read_key_dates(self, person: Person) -> list[dict]:
+        if not person.dates_enc:
+            return []
+        raw = self.cipher.decrypt(person.dates_enc, self.owner_id)
+        try:
+            parsed = json.loads(raw)
+        except (TypeError, ValueError):
+            # A date list that cannot be read is dropped, not guessed at.
+            logger.warning("unreadable key dates for a person; ignoring")
+            return []
+        return [item for item in parsed if isinstance(item, dict) and item.get("date")]
+
+    def update(
+        self,
+        person: Person,
+        *,
+        name: Any = _UNSET,
+        notes: Any = _UNSET,
+        relationship: Any = _UNSET,
+        key_dates: Any = _UNSET,
+    ) -> Person:
         if person.user_id != self.owner_id:
             raise OwnershipViolation("refusing to update a person belonging to another owner")
         if name is not _UNSET and name is not None:
             person.name = name
         if notes is not _UNSET:
             person.notes_enc = self.cipher.encrypt(notes, self.owner_id) if notes else None
+        if relationship is not _UNSET:
+            person.relationship_enc = self._seal(relationship)
+        if key_dates is not _UNSET:
+            person.dates_enc = self._seal_dates(key_dates or [])
         if name is not _UNSET or notes is not _UNSET:
             person.search_index = self._index(person.name, self.read_notes(person) or "")
         person.updated_at = utcnow()
@@ -280,3 +332,88 @@ class AttachmentRepository(OwnedRepository[Attachment]):
     def search(self, *, limit: int = 50, offset: int = 0) -> tuple[list[Attachment], int]:
         stmt = self.scoped_query().order_by(Attachment.created_at.desc())
         return self.list_page(stmt, limit=limit, offset=offset)
+
+
+class CommitmentRepository(_SearchableRepository):
+    """Promises, things lent and things borrowed, for one owner.
+
+    Subclasses the searchable repository for its cipher, not for its index:
+    commitments are short enough that search reaches them through the person
+    they hang off, and the text itself is never indexed in the clear.
+    """
+
+    model = Commitment
+    index_columns: tuple[str, ...] = ()
+
+    def create(
+        self,
+        *,
+        text: str,
+        kind: str = "promise",
+        person_id: str | None = None,
+        memory_id: str | None = None,
+        due_on: date | None = None,
+    ) -> Commitment:
+        row = Commitment(
+            user_id=self.owner_id,
+            text_enc=self.cipher.encrypt(text, self.owner_id),
+            kind=kind,
+            person_id=person_id,
+            memory_id=memory_id,
+            due_on=due_on,
+            status="open",
+        )
+        return self.add(row)
+
+    def read_text(self, row: Commitment) -> str:
+        return self.cipher.decrypt(row.text_enc, self.owner_id)
+
+    def page(
+        self,
+        *,
+        status: str | None = "open",
+        person_id: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> tuple[list[Commitment], int]:
+        stmt = self.scoped_query()
+        if status:
+            stmt = stmt.where(Commitment.status == status)
+        if person_id:
+            stmt = stmt.where(Commitment.person_id == person_id)
+        # Undated commitments sort last: a dated promise is the one that can be late.
+        stmt = stmt.order_by(Commitment.due_on.is_(None), Commitment.due_on.asc(), Commitment.created_at.desc())
+        return self.list_page(stmt, limit=limit, offset=offset)
+
+    def open_counts(self) -> dict[str, int]:
+        """How many open commitments each person has, in one query."""
+        stmt = (
+            sa.select(Commitment.person_id, sa.func.count())
+            .where(Commitment.user_id == self.owner_id, Commitment.status == "open")
+            .where(Commitment.person_id.is_not(None))
+            .group_by(Commitment.person_id)
+        )
+        return {person_id: int(count) for person_id, count in self.session.execute(stmt).all()}
+
+    def open_count_for(self, person_id: str) -> int:
+        stmt = (
+            sa.select(sa.func.count())
+            .select_from(Commitment)
+            .where(
+                Commitment.user_id == self.owner_id,
+                Commitment.person_id == person_id,
+                Commitment.status == "open",
+            )
+        )
+        return int(self.session.execute(stmt).scalar_one())
+
+    def due_between(self, *, start: date, end: date, limit: int = 20) -> list[Commitment]:
+        stmt = (
+            self.scoped_query()
+            .where(Commitment.status == "open")
+            .where(Commitment.due_on.is_not(None))
+            .where(Commitment.due_on >= start, Commitment.due_on <= end)
+            .order_by(Commitment.due_on.asc())
+            .limit(limit)
+        )
+        return list(self.session.execute(stmt).scalars())

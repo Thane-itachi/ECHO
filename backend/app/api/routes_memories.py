@@ -15,6 +15,7 @@ from app.schemas import (
     MemoryRead,
     MemoryUpdate,
     PersonCreate,
+    PersonUpdate,
     PersonList,
     PersonRead,
 )
@@ -163,6 +164,27 @@ def create_person(
     cipher: ContentCipher | NullCipher = Depends(get_cipher),
 ) -> PersonRead:
     return PersonService(db, user.id, cipher=cipher).create(payload)
+
+
+@people_router.get("/{person_id}", response_model=PersonRead)
+def read_person(
+    person_id: str,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
+) -> PersonRead:
+    return PersonService(db, user.id, cipher=cipher).detail(person_id)
+
+
+@people_router.patch("/{person_id}", response_model=PersonRead)
+def update_person(
+    person_id: str,
+    payload: PersonUpdate,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    cipher: ContentCipher | NullCipher = Depends(get_cipher),
+) -> PersonRead:
+    return PersonService(db, user.id, cipher=cipher).update(person_id, payload)
 
 
 @people_router.delete("/{person_id}", status_code=status.HTTP_204_NO_CONTENT)

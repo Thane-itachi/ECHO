@@ -4729,3 +4729,197 @@ body {
 .who-monogram {
   color: var(--on-accent);
 }
+
+/* ── People and commitments ────────────────────────────────────────────────
+   A person is a row you can open. Inside, every promise and borrowed thing is
+   a line with the three decisions that matter: remind me, done, forget. */
+.person-open {
+  display: grid;
+  gap: 0.15rem;
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.person-open:hover .person-name {
+  color: var(--leather-mark);
+}
+
+.person-role {
+  font-family: var(--display);
+  font-style: italic;
+  color: var(--ink-3);
+}
+
+.person-detail {
+  display: grid;
+  gap: 1.2rem;
+  padding-top: 0.4rem;
+}
+
+.person-head {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.person-head h2 {
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+}
+
+.person-role-edit {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.person-role-edit input {
+  min-width: 12rem;
+}
+
+.a-kv-like {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.a-kv-like li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.commit-block {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.commit-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.commit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-2);
+}
+
+.commit-row.is-settled {
+  opacity: 0.62;
+}
+
+.commit-text {
+  font-family: var(--reading);
+  font-size: 1.02rem;
+  margin: 0;
+}
+
+.commit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+}
+
+.commit-late {
+  color: var(--ox);
+  font-weight: 600;
+}
+
+.commit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.commit-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.commit-form select,
+.commit-form input {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--rule-2);
+  border-radius: 2px;
+  background: var(--field);
+  color: var(--ink);
+}
+
+.commit-form input[type='text'],
+.commit-form input:not([type]) {
+  flex: 1 1 14rem;
+}
+
+.commit-notice {
+  padding: 0.55rem 0.75rem;
+  border-left: 2px solid var(--forest);
+  background: var(--forest-wash);
+  color: var(--forest);
+  font-size: 0.88rem;
+}
+
+.commit-settled summary {
+  cursor: pointer;
+  padding: 0.4rem 0;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
+
+.owed-row {
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.owed-main {
+  display: grid;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.owed-remind {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.76rem;
+}
+
+@media (max-width: 560px) {
+  .commit-row {
+    align-items: flex-start;
+  }
+
+  .commit-actions {
+    width: 100%;
+  }
+
+  .commit-form select,
+  .commit-form input,
+  .commit-form button {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}

@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 
 import {
   ask,
+  dueCommitments,
+  remindCommitment,
+  type Commitment,
   formatDate,
   formatDateTime,
   listMemories,
@@ -53,6 +56,8 @@ function longDate(): string {
 export default function Dashboard() {
   const handleAuthFailure = useAuthFailureHandler();
   const [brief, setBrief] = useState<Brief | null>(null);
+  const [owed, setOwed] = useState<Commitment[]>([]);
+  const [owedNotice, setOwedNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,9 +67,11 @@ export default function Dashboard() {
       listPeople(),
       listReminders(),
       listProposals('pending'),
+      dueCommitments(14).catch(() => ({ items: [], total: 0 })),
     ])
-      .then(([memories, people, reminders, proposals]) => {
+      .then(([memories, people, reminders, proposals, due]) => {
         if (!alive) return;
+        setOwed(due.items);
         setBrief({
           memories: memories.items,
           memoryTotal: memories.total,
@@ -178,6 +185,42 @@ export default function Dashboard() {
                     </Link>
                   ))
                 )}
+              </section>
+
+              <section>
+                <h2 className="section-title">Owed, and due soon</h2>
+                {owed.length === 0 ? (
+                  <p className="empty">
+                    Nothing promised in the next two weeks. Open someone to see everything still owed.
+                  </p>
+                ) : (
+                  owed.slice(0, 4).map((row) => (
+                    <div key={row.id} className="row-link owed-row">
+                      <Link className="owed-main" to="/people">
+                        <span className="row-link-title">
+                          {row.person_name ? `${row.person_name}: ` : ''}
+                          {row.text}
+                        </span>
+                        <span className="row-link-sub">
+                          {row.kind === 'lent' ? 'you lent it' : row.kind === 'borrowed' ? 'you borrowed it' : 'you promised'}
+                        </span>
+                      </Link>
+                      <span className="row-link-when">{row.due_on ? formatDate(row.due_on) : 'no date'}</span>
+                      <button
+                        type="button"
+                        className="ghost-button owed-remind"
+                        onClick={() => {
+                          void remindCommitment(row.id)
+                            .then(() => setOwedNotice('Reminder set. It also goes to your email if that is on.'))
+                            .catch((caught) => setOwedNotice(errorMessage(caught)));
+                        }}
+                      >
+                        Remind me
+                      </button>
+                    </div>
+                  ))
+                )}
+                {owedNotice ? <p className="commit-notice">{owedNotice}</p> : null}
               </section>
 
               <section>

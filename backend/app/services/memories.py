@@ -7,12 +7,16 @@ from sqlalchemy.orm import Session
 
 from app.core.crypto import ContentCipher, NullCipher, get_default_cipher
 from app.repositories.memories import (
+    CommitmentRepository,
     MemoryRepository,
     PersonRepository,
     RelationshipRepository,
 )
 from app.repositories.system import AuditRepository
 from app.schemas import (
+    CommitmentList,
+    CommitmentRead,
+    KeyDate,
     LinkCreate,
     LinkedMemory,
     LinkList,
@@ -23,8 +27,9 @@ from app.schemas import (
     PersonCreate,
     PersonList,
     PersonRead,
+    PersonUpdate,
 )
-from app.services.serializers import to_memory_read, to_person_read
+from app.services.serializers import to_commitment_read, to_memory_read, to_person_read
 
 
 class MemoryService:
@@ -177,17 +182,46 @@ class PersonService:
         self.owner_id = owner_id
         self.cipher = cipher or get_default_cipher()
         self.people = PersonRepository(session, owner_id, cipher=self.cipher)
+        self.commitments = CommitmentRepository(session, owner_id, cipher=self.cipher)
 
     def create(self, payload: PersonCreate) -> PersonRead:
-        person = self.people.create(name=payload.name.strip(), notes=payload.notes)
+        person = self.people.create(
+            name=payload.name.strip(),
+            notes=payload.notes,
+            relationship=payload.relationship,
+            key_dates=[item.model_dump(mode="json") for item in payload.key_dates],
+        )
         self.session.commit()
         return to_person_read(person, self.people)
 
     def list(self, *, limit: int = 50, offset: int = 0) -> PersonList:
         rows, total = self.people.search(limit=limit, offset=offset)
+        counts = self.commitments.open_counts()
         return PersonList(
-            items=[to_person_read(row, self.people) for row in rows], total=total, limit=limit, offset=offset
+            items=[to_person_read(row, self.people, open_commitments=counts.get(row.id, 0)) for row in rows],
+            total=total,
+            limit=limit,
+            offset=offset,
         )
+
+    def update(self, person_id: str, payload: PersonUpdate) -> PersonRead:
+        person = self.people.require(person_id)
+        changes: dict[str, Any] = {}
+        if payload.name is not None:
+            changes["name"] = payload.name.strip()
+        if "notes" in payload.model_fields_set:
+            changes["notes"] = payload.notes
+        if "relationship" in payload.model_fields_set:
+            changes["relationship"] = payload.relationship
+        if payload.key_dates is not None:
+            changes["key_dates"] = [item.model_dump(mode="json") for item in payload.key_dates]
+        person = self.people.update(person, **changes)
+        self.session.commit()
+        return to_person_read(person, self.people, open_commitments=self.commitments.open_count_for(person.id))
+
+    def detail(self, person_id: str) -> PersonRead:
+        person = self.people.require(person_id)
+        return to_person_read(person, self.people, open_commitments=self.commitments.open_count_for(person.id))
 
     def delete(self, person_id: str) -> None:
         person = self.people.require(person_id)

@@ -61,10 +61,36 @@ export interface Page<T> {
   offset: number;
 }
 
+export interface KeyDate {
+  label: string;
+  /** ISO date: 1979-04-12 */
+  date: string;
+  repeats_yearly: boolean;
+}
+
 export interface Person {
   id: string;
   name: string;
   notes: string | null;
+  relationship: string | null;
+  key_dates: KeyDate[];
+  /** what is still owed between you, so a person is also a loose end */
+  open_commitments: number;
+  created_at: string;
+}
+
+export type CommitmentKind = 'promise' | 'lent' | 'borrowed';
+export type CommitmentStatus = 'open' | 'done' | 'dropped';
+
+export interface Commitment {
+  id: string;
+  kind: CommitmentKind;
+  text: string;
+  due_on: string | null;
+  status: CommitmentStatus;
+  person_id: string | null;
+  person_name: string | null;
+  memory_id: string | null;
   created_at: string;
 }
 
@@ -413,8 +439,59 @@ export function createPerson(input: { name: string; notes?: string }): Promise<P
   return request<Person>('/people', { method: 'POST', body: input });
 }
 
+export function updatePerson(
+  id: string,
+  input: {
+    name?: string;
+    notes?: string | null;
+    relationship?: string | null;
+    key_dates?: KeyDate[];
+  },
+): Promise<Person> {
+  return request<Person>(`/people/${id}`, { method: 'PATCH', body: input });
+}
+
 export function deletePerson(id: string): Promise<void> {
   return request<void>(`/people/${id}`, { method: 'DELETE' });
+}
+
+/* ----------------------------------------------------------- commitments --- */
+
+export function listCommitments(params: {
+  status?: CommitmentStatus | 'all';
+  person_id?: string;
+} = {}): Promise<{ items: Commitment[]; total: number }> {
+  return request<{ items: Commitment[]; total: number }>(`/commitments${query({ ...params, limit: 200 })}`);
+}
+
+export function dueCommitments(days = 14): Promise<{ items: Commitment[]; total: number }> {
+  return request<{ items: Commitment[]; total: number }>(`/commitments/due?days=${days}`);
+}
+
+export function createCommitment(input: {
+  kind: CommitmentKind;
+  text: string;
+  person_id?: string | null;
+  memory_id?: string | null;
+  due_on?: string | null;
+}): Promise<Commitment> {
+  return request<Commitment>('/commitments', { method: 'POST', body: input });
+}
+
+export function updateCommitment(
+  id: string,
+  input: { text?: string; due_on?: string | null; status?: CommitmentStatus },
+): Promise<Commitment> {
+  return request<Commitment>(`/commitments/${id}`, { method: 'PATCH', body: input });
+}
+
+export function deleteCommitment(id: string): Promise<void> {
+  return request<void>(`/commitments/${id}`, { method: 'DELETE' });
+}
+
+/** One tap: the commitment becomes a reminder at nine in the morning, or at `due_at`. */
+export function remindCommitment(id: string, due_at?: string): Promise<Reminder> {
+  return request<Reminder>(`/commitments/${id}/remind`, { method: 'POST', body: { due_at: due_at ?? null } });
 }
 
 /* ------------------------------------------------------------ proposals --- */

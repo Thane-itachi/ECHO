@@ -1,10 +1,10 @@
 """Serialisation helpers: decrypt at the boundary, never in the router."""
 from __future__ import annotations
 
-from app.db.models import Attachment, Memory, MemoryProposal, Person, Reminder
-from app.repositories.memories import MemoryRepository, PersonRepository
+from app.db.models import Attachment, Commitment, Memory, MemoryProposal, Person, Reminder
+from app.repositories.memories import CommitmentRepository, MemoryRepository, PersonRepository
 from app.repositories.proposals import ProposalRepository
-from app.schemas import DocumentRead, MemoryRead, PersonRead, ProposalRead, ReminderRead
+from app.schemas import CommitmentRead, DocumentRead, KeyDate, MemoryRead, PersonRead, ProposalRead, ReminderRead
 
 
 def to_memory_read(memory: Memory, repo: MemoryRepository) -> MemoryRead:
@@ -22,12 +22,39 @@ def to_memory_read(memory: Memory, repo: MemoryRepository) -> MemoryRead:
     )
 
 
-def to_person_read(person: Person, repo: PersonRepository | None = None) -> PersonRead:
+def to_person_read(
+    person: Person,
+    repo: PersonRepository | None = None,
+    *,
+    open_commitments: int = 0,
+) -> PersonRead:
     return PersonRead(
         id=person.id,
         name=person.name,
         notes=repo.read_notes(person) if repo is not None else None,
+        relationship=repo.read_relationship(person) if repo is not None else None,
+        key_dates=[KeyDate(**item) for item in (repo.read_key_dates(person) if repo is not None else [])],
+        open_commitments=open_commitments,
         created_at=person.created_at,
+    )
+
+
+def to_commitment_read(
+    row: Commitment,
+    repo: CommitmentRepository,
+    *,
+    person_name: str | None = None,
+) -> CommitmentRead:
+    return CommitmentRead(
+        id=row.id,
+        kind=row.kind,
+        text=repo.read_text(row),
+        due_on=row.due_on,
+        status=row.status,
+        person_id=row.person_id,
+        person_name=person_name,
+        memory_id=row.memory_id,
+        created_at=row.created_at,
     )
 
 

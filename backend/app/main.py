@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.admin import routes as admin_routes
 from app.api import (
+    routes_commitments,
     routes_ask,
     routes_auth,
     routes_captures,
@@ -86,6 +87,7 @@ def create_app(*, session_factory=None, cipher=None, llm=None, mailer=None, push
         routes_auth.router,
         routes_memories.router,
         routes_memories.people_router,
+        routes_commitments.router,
         routes_proposals.router,
         routes_reminders.router,
         routes_ask.router,

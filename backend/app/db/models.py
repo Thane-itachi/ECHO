@@ -9,11 +9,12 @@ Every datetimes is naive UTC (see app/core/time.py).
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -45,6 +46,10 @@ MEMORY_SOURCES: tuple[str, ...] = ("user", "ai_extraction", "import")
 ADMIN_ROLES: tuple[str, ...] = ("founder", "platform_admin", "support_admin")
 DOCUMENT_SCAN_STATUSES: tuple[str, ...] = ("stored", "quarantined")
 PROPOSAL_STATUSES: tuple[str, ...] = ("pending", "approved", "rejected")
+#: A commitment is anything owed in either direction: a promise, a thing lent
+#: out, a thing borrowed. It is the unit the People page and the dashboard count.
+COMMITMENT_KINDS: tuple[str, ...] = ("promise", "lent", "borrowed")
+COMMITMENT_STATUSES: tuple[str, ...] = ("open", "done", "dropped")
 JOB_STATUSES: tuple[str, ...] = ("queued", "running", "done", "failed")
 #: `suppressed` is not a failure: the recipient cannot or should not receive this
 #: message (reminder email turned off, no address left, provider disabled in dev). It
@@ -186,7 +191,45 @@ class Person(Base, Timestamped):
     # text, not the substance of what a user told ECHO. Notes are encrypted.
     name: Mapped[str] = mapped_column(String(160), nullable=False)
     notes_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # "my sister", "my landlord": encrypted, because who someone is to you is
+    # as personal as what you wrote about them.
+    relationship_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Key dates as encrypted JSON: [{"label": "birthday", "date": "1990-03-02"}]
+    dates_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
     search_index: Mapped[str] = mapped_column(Text, nullable=False, default="")
+
+
+class Commitment(Base, Timestamped):
+    """Something owed: a promise, a thing lent, a thing borrowed.
+
+    Deliberately one table for all three, because the questions a person asks
+    are the same shape ("what is Daniel still holding?", "what did I promise
+    Ada?"), and because each row can hang off the note and the person it came
+    from without a second join table.
+    """
+
+    __tablename__ = "commitments"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    person_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("people.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    memory_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("memories.id", ondelete="SET NULL"), nullable=True
+    )
+    kind: Mapped[str] = mapped_column(String(16), nullable=False, default="promise")
+    text_enc: Mapped[str] = mapped_column(Text, nullable=False)
+    due_on: Mapped[date | None] = mapped_column(Date, nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="open")
+
+    __table_args__ = (
+        CheckConstraint(f"kind IN {_in_list(COMMITMENT_KINDS)}", name="ck_commitments_kind"),
+        CheckConstraint(f"status IN {_in_list(COMMITMENT_STATUSES)}", name="ck_commitments_status"),
+        Index("ix_commitments_owner_status", "user_id", "status", "due_on"),
+    )
 
 
 class Memory(Base, Timestamped):
