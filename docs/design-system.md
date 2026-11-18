@@ -32,6 +32,27 @@ new code must not use them.
 **Type.** Inter everywhere, self-hosted at `web/public/fonts/inter-{latin,latin-ext}.woff2`
 and preloaded. No serif faces remain.
 
+## The mark (`web/src/components/Logo.tsx`)
+
+The logo is the owner's own drawing: three concentric arcs opening to the right, four beads
+resting just past the ends of the two outer arcs, and a gradient from blue at the top left to
+violet at the bottom right. It is geometry, not a bitmap, so it stays crisp from a 30px rail to
+the 300px watermark on the sign-in panel.
+
+- **Measured, not invented.** Arc radii are 103, 80 and 53 on a 216 viewBox with the centre at
+  108; the mouth is 144 degrees wide and sits on the horizon. Both gradient ends come from the
+  owner's artwork (`#4aa0fb` into `#7c24f7` on dark, `#1d7fd6` into `#6a1fd0` on light).
+- **Tokens.** The gradient stops are `--mark-arc-from` and `--mark-arc-to` in both themes, so
+  the mark re-tints with the theme and a parent can recolour it (the watermark does).
+- **Optical stroke.** `stroke = max(6.5, 345 / size)`, so the line thickens as the mark shrinks
+  and the drawing survives 24px. Beads follow the stroke at 1.35×.
+- **No plate.** The old violet tile, hairline frame and `--mark-tile-*` / `--mark-ink` variables
+  are gone; the arcs carry the shape on navy or on paper.
+- **Two components.** `EchoMark` is the mark alone (rail, splash, error boundary, admin).
+  `EchoLogo` adds the ECHO wordmark at 0.86× the mark size, with an optional
+  `Remember. Organize. Thrive.` tagline for places with room (sign-in panel, public header).
+- **Tab icon.** `web/public/favicon.svg` is the same arcs and beads on a `#080d1b` rounded square.
+
 ## Layer 2: components (`web/src/components/ui`)
 
 One barrel import: `import { Button, Card, Badge } from '../components/ui'`. Styles live in
