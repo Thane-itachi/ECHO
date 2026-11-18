@@ -561,6 +561,7 @@ export interface AskAnswer {
   question: string;
   answer: string;
   citations: Citation[];
+  grounding: 'record' | 'inferred' | 'none';
   mode: string;
   matched: number;
 }

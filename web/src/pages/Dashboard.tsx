@@ -289,10 +289,11 @@ function AskDock() {
                 <p>{turn.answer.answer}</p>
                 {turn.answer.citations.length > 0 ? (
                   <span className="dock-cite">
-                    From {turn.answer.citations[0].title} · {formatDate(turn.answer.citations[0].created_at)}
+                    {turn.answer.grounding === 'inferred' ? 'Paraphrased from ' : 'From '}
+                    {turn.answer.citations[0].title} · {formatDate(turn.answer.citations[0].created_at)}
                   </span>
                 ) : (
-                  <span className="dock-cite">No note matched</span>
+                  <span className="dock-cite">Nothing saved answers this</span>
                 )}
               </div>
             ) : null}

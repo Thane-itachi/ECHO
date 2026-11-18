@@ -133,6 +133,8 @@ def test_a_generated_answer_is_used_when_it_cites(make_user, create_memory, sess
     body = client.post("/api/ask", json={"question": "who borrowed my laptop"}, headers=owner["headers"]).json()
 
     assert body["mode"] == "generated"
+    # a paraphrase over cited notes is an inference, not a record
+    assert body["grounding"] == "inferred"
     assert "John" in body["answer"]
     # The marker indexes the citation list the client receives.
     assert body["answer"].rstrip().endswith("[1].")
@@ -152,6 +154,7 @@ def test_an_uncited_model_answer_is_discarded(make_user, create_memory, session_
 
     # The smooth answer is gone: what the user gets is the quotation, with its marker.
     assert body["mode"] == "extractive"
+    assert body["grounding"] == "record"
     assert "John took your MacBook" not in body["answer"]
     assert "[1]" in body["answer"]
     assert body["citations"]

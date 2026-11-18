@@ -255,6 +255,17 @@ class AskService:
             mode = "extractive"
 
         picked = [retrieved[index - 1] for index in (indices or range(1, len(retrieved) + 1))]
+
+        # What the reader is entitled to assume. A quotation is a record; a
+        # paraphrase over cited notes is an inference; no citation means ECHO
+        # is admitting it has nothing, which the interface must say out loud.
+        if not picked:
+            grounding = "none"
+        elif mode == "extractive":
+            grounding = "record"
+        else:
+            grounding = "inferred"
+
         return AskResponse(
             question=question,
             answer=answer,
@@ -264,4 +275,5 @@ class AskService:
             ],
             mode=mode,
             matched=len(retrieved),
+            grounding=grounding,
         )

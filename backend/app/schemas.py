@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from datetime import datetime
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -396,6 +397,11 @@ class AskResponse(BaseModel):
     citations: list[Citation]
     mode: str = "extractive"
     matched: int
+    # How much of the answer is standing on a saved record.
+    #   record   - every sentence was quoted from a note the user saved
+    #   inferred - a paraphrase, written over notes that are cited
+    #   none     - nothing in the vault answers this question
+    grounding: Literal["record", "inferred", "none"] = "record"
 
 
 # --------------------------------------------------------------------- capture

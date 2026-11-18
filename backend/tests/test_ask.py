@@ -19,6 +19,8 @@ def test_ask_answers_from_the_vault_with_citations(client, make_user, create_mem
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["mode"] == "extractive"
+    # quoted from the vault, so the reader can treat it as a record
+    assert body["grounding"] == "record"
     assert body["matched"] >= 1
     assert body["citations"][0]["memory_id"] == memory["id"]
     assert "John" in body["answer"]
@@ -33,6 +35,8 @@ def test_ask_says_so_when_nothing_matches(client, make_user):
     body = response.json()
     assert body["matched"] == 0
     assert body["citations"] == []
+    # and the interface is told there is nothing to stand on
+    assert body["grounding"] == "none"
     assert "Nothing in your vault" in body["answer"]
 
 
@@ -45,4 +49,5 @@ def test_ask_never_crosses_tenants(client, make_user, create_memory):
     body = response.json()
     assert body["matched"] == 0
     assert body["citations"] == []
+    assert body["grounding"] == "none"
     assert "John" not in body["answer"]
