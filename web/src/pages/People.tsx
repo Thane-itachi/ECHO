@@ -16,6 +16,7 @@ import {
   type Person,
 } from '../lib/api';
 import { errorMessage, useAuthFailureHandler } from '../lib/auth';
+import { Badge, Button, ConfirmationDialog, useToast } from '../components/ui';
 
 const KIND_WORDS: Record<CommitmentKind, string> = {
   promise: 'Promised',
@@ -46,6 +47,8 @@ export default function People() {
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [pendingRemove, setPendingRemove] = useState<Person | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     let alive = true;
@@ -83,11 +86,13 @@ export default function People() {
   }
 
   async function remove(person: Person) {
-    if (!window.confirm(`Remove ${person.name}? Memories that mention them stay in your vault.`)) return;
     try {
       await deletePerson(person.id);
+      setPendingRemove(null);
+      toast(`${person.name} was removed. Their notes stay in your vault.`, 'success');
       refresh();
     } catch (caught) {
+      setPendingRemove(null);
       if (!handleAuthFailure(caught)) setError(errorMessage(caught));
     }
   }
@@ -131,9 +136,9 @@ export default function People() {
               placeholder="How you know them (optional)"
               maxLength={4000}
             />
-            <button type="submit" className="primary-button" disabled={busy || name.trim().length === 0}>
+            <Button type="submit" variant="primary" disabled={busy || name.trim().length === 0}>
               {busy ? 'Adding…' : 'Add person'}
-            </button>
+            </Button>
           </form>
 
           {error ? <p className="form-error">{error}</p> : null}
@@ -158,15 +163,25 @@ export default function People() {
                       {person.key_dates.length > 0 ? ` · ${person.key_dates.length} date${person.key_dates.length === 1 ? '' : 's'} kept` : ''}
                     </span>
                   </button>
-                  <button type="button" className="ghost-button" onClick={() => void remove(person)}>
+                  <Button variant="danger" size="sm" onClick={() => setPendingRemove(person)}>
                     Remove
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
           )}
         </>
       )}
+
+      <ConfirmationDialog
+        open={pendingRemove !== null}
+        title={pendingRemove ? `Remove ${pendingRemove.name}?` : 'Remove this person?'}
+        body="Their profile and the dates you kept go away. Notes that mention them stay in your vault, and anything still owed is kept without a name against it."
+        confirmLabel={pendingRemove ? `Remove ${pendingRemove.name}` : 'Remove'}
+        cancelLabel="Keep them"
+        onConfirm={() => pendingRemove && void remove(pendingRemove)}
+        onCancel={() => setPendingRemove(null)}
+      />
     </div>
   );
 }
@@ -190,8 +205,9 @@ function PersonDetail({
   const [dueOn, setDueOn] = useState('');
   const [relationship, setRelationship] = useState(person.relationship ?? '');
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  const [pendingDrop, setPendingDrop] = useState<Commitment | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     let alive = true;
@@ -210,7 +226,6 @@ function PersonDetail({
   async function add(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
-    setNotice(null);
     try {
       await createCommitment({
         kind,
@@ -242,16 +257,17 @@ function PersonDetail({
   async function remind(row: Commitment) {
     try {
       await remindCommitment(row.id);
-      setNotice('Reminder set for nine in the morning. It also goes to your email if that is on.');
+      toast('Reminder set for nine in the morning. It also goes to your email if that is on.', 'success');
     } catch (caught) {
       if (!handleAuthFailure(caught)) onError(errorMessage(caught));
     }
   }
 
   async function drop(row: Commitment) {
-    if (!window.confirm(`Forget "${row.text}"?`)) return;
     try {
       await deleteCommitment(row.id);
+      setPendingDrop(null);
+      toast('Forgotten.', 'success');
       setReload((token) => token + 1);
       onChanged();
     } catch (caught) {
@@ -262,7 +278,7 @@ function PersonDetail({
   async function saveRelationship() {
     try {
       await updatePerson(person.id, { relationship: relationship.trim() || null });
-      setNotice('Saved.');
+      toast('Saved.', 'success');
       onChanged();
     } catch (caught) {
       if (!handleAuthFailure(caught)) onError(errorMessage(caught));
@@ -274,9 +290,9 @@ function PersonDetail({
 
   return (
     <section className="person-detail">
-      <button type="button" className="ghost-button" onClick={onBack}>
+      <Button variant="secondary" size="sm" onClick={onBack}>
         ← All people
-      </button>
+      </Button>
 
       <header className="person-head">
         <h2>{person.name}</h2>
@@ -298,9 +314,9 @@ function PersonDetail({
             placeholder="relationship"
             maxLength={120}
           />
-          <button type="button" className="ghost-button" onClick={() => void saveRelationship()}>
+          <Button variant="secondary" size="sm" onClick={() => void saveRelationship()}>
             Save
-          </button>
+          </Button>
         </span>
       </div>
 
@@ -329,22 +345,22 @@ function PersonDetail({
                 <div>
                   <p className="commit-text">{row.text}</p>
                   <p className="commit-meta">
-                    <span className="chip">{KIND_WORDS[row.kind]}</span>
+                    <Badge tone="brand">{KIND_WORDS[row.kind]}</Badge>
                     <span className={row.due_on && dueWords(row.due_on).includes('late') ? 'commit-late' : 'muted'}>
                       {dueWords(row.due_on)}
                     </span>
                   </p>
                 </div>
                 <div className="commit-actions">
-                  <button type="button" className="ghost-button" onClick={() => void remind(row)}>
+                  <Button variant="secondary" size="sm" onClick={() => void remind(row)}>
                     Remind me
-                  </button>
-                  <button type="button" className="ghost-button" onClick={() => void settle(row)}>
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => void settle(row)}>
                     Done
-                  </button>
-                  <button type="button" className="ghost-button" onClick={() => void drop(row)}>
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => setPendingDrop(row)}>
                     Forget
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}
@@ -370,13 +386,12 @@ function PersonDetail({
             onChange={(event) => setDueOn(event.target.value)}
             aria-label="Settled by (optional)"
           />
-          <button type="submit" className="primary-button" disabled={busy || text.trim().length === 0}>
+          <Button type="submit" variant="primary" disabled={busy || text.trim().length === 0}>
             {busy ? 'Adding…' : 'Add'}
-          </button>
+          </Button>
         </form>
       </div>
 
-      {notice ? <p className="commit-notice">{notice}</p> : null}
 
       {settledRows.length > 0 ? (
         <details className="commit-settled">
@@ -387,20 +402,30 @@ function PersonDetail({
                 <div>
                   <p className="commit-text">{row.text}</p>
                   <p className="commit-meta">
-                    <span className="chip">{KIND_WORDS[row.kind]}</span>
+                    <Badge tone="brand">{KIND_WORDS[row.kind]}</Badge>
                     <span className="muted">{row.status}</span>
                   </p>
                 </div>
                 <div className="commit-actions">
-                  <button type="button" className="ghost-button" onClick={() => void settle(row)}>
+                  <Button variant="secondary" size="sm" onClick={() => void settle(row)}>
                     Reopen
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}
           </ul>
         </details>
       ) : null}
+
+      <ConfirmationDialog
+        open={pendingDrop !== null}
+        title="Forget this?"
+        body={pendingDrop ? `"${pendingDrop.text}" will be removed from what is owed. This cannot be undone.` : ''}
+        confirmLabel="Forget it"
+        cancelLabel="Keep it"
+        onConfirm={() => pendingDrop && void drop(pendingDrop)}
+        onCancel={() => setPendingDrop(null)}
+      />
     </section>
   );
 }
