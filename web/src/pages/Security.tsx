@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '../components/ui';
 
 import { ApiError, getCapabilities } from '../lib/api';
 import { errorMessage, useAuth } from '../lib/auth';
@@ -143,9 +144,9 @@ export default function Security() {
             />
             <small>Ten characters or more.</small>
           </label>
-          <button type="submit" className="primary-button" disabled={passwordBusy}>
+          <Button variant="primary" type="submit" disabled={passwordBusy}>
             {passwordBusy ? 'Changing…' : 'Change my password'}
-          </button>
+          </Button>
           {passwordError ? <p className="form-error">{passwordError}</p> : null}
           {passwordNote ? <p className="sidebar-note">{passwordNote}</p> : null}
         </form>
@@ -195,9 +196,9 @@ export default function Security() {
             <dd>A password change ends them</dd>
           </div>
         </dl>
-        <button type="button" className="ghost-button" onClick={signOut}>
+        <Button variant="secondary" type="button" onClick={signOut}>
           Sign out of this device
-        </button>
+        </Button>
       </section>
 
       <section className="report-section">

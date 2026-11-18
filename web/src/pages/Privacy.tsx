@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ButtonLink } from '../components/ui';
 
 export default function Privacy() {
   return (
@@ -76,12 +77,12 @@ export default function Privacy() {
         </section>
 
         <section className="prose-actions">
-          <Link className="ghost-button" to="/how-it-works">
+          <ButtonLink variant="secondary" to="/how-it-works">
             How ECHO works
-          </Link>
-          <Link className="ghost-button" to="/help">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/help">
             Questions people ask
-          </Link>
+          </ButtonLink>
         </section>
       </div>
     </main>

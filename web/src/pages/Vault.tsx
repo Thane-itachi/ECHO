@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Button } from '../components/ui';
 
 import {
   CATEGORIES,
@@ -88,12 +89,12 @@ function MemoryForm({
       {error ? <p className="form-error">{error}</p> : null}
 
       <div className="form-actions">
-        <button type="submit" className="primary-button" disabled={busy}>
+        <Button variant="primary" type="submit" disabled={busy}>
           {busy ? 'Saving…' : submitLabel}
-        </button>
-        <button type="button" className="ghost-button" onClick={onCancel} disabled={busy}>
+        </Button>
+        <Button variant="secondary" type="button" onClick={onCancel} disabled={busy}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -217,9 +218,8 @@ export default function Vault() {
             {debounced ? ` matching “${debounced}”` : ''}
           </p>
         </div>
-        <button
-          type="button"
-          className="primary-button"
+        <Button
+          variant="primary"
           onClick={() => {
             setComposing(true);
             setEditing(false);
@@ -228,7 +228,7 @@ export default function Vault() {
           }}
         >
           New memory
-        </button>
+        </Button>
       </header>
 
       <div className="toolbar">
@@ -359,12 +359,12 @@ export default function Vault() {
               <RelatedMemories memoryId={selected.id} candidates={items} />
 
               <div className="detail-actions">
-                <button type="button" className="primary-button" onClick={() => setEditing(true)} disabled={busy}>
+                <Button variant="primary" type="button" onClick={() => setEditing(true)} disabled={busy}>
                   Edit
-                </button>
-                <button type="button" className="ghost-button" onClick={() => void toggleArchive(selected)} disabled={busy}>
+                </Button>
+                <Button variant="secondary" type="button" onClick={() => void toggleArchive(selected)} disabled={busy}>
                   {selected.archived_at ? 'Restore' : 'Archive'}
-                </button>
+                </Button>
                 <button type="button" className="danger-button" onClick={() => void remove(selected)} disabled={busy}>
                   Delete
                 </button>

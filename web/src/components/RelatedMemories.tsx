@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Button } from './ui';
 
 import { createLink, listLinks, removeLink, type LinkedMemory, type Memory } from '../lib/api';
 import { errorMessage, useAuthFailureHandler } from '../lib/auth';
@@ -67,9 +68,9 @@ export default function RelatedMemories({ memoryId, candidates }: { memoryId: st
             <li key={link.id}>
               <span>{link.title}</span>
               <span className="chip chip-muted">{link.kind}</span>
-              <button type="button" className="ghost-button" disabled={busy} onClick={() => void drop(link.id)}>
+              <Button variant="secondary" type="button" disabled={busy} onClick={() => void drop(link.id)}>
                 Unlink
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -85,9 +86,9 @@ export default function RelatedMemories({ memoryId, candidates }: { memoryId: st
               </option>
             ))}
           </select>
-          <button type="button" className="ghost-button" disabled={busy || !choice} onClick={() => void add()}>
+          <Button variant="secondary" type="button" disabled={busy || !choice} onClick={() => void add()}>
             Connect
-          </button>
+          </Button>
         </div>
       ) : null}
 

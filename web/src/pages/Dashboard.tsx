@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Card, EmptyState } from '../components/ui';
+import { Button, ButtonLink, Card, EmptyState } from '../components/ui';
 
 import {
   ask,
@@ -108,12 +108,12 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="today-actions">
-          <Link className="ghost-button" to="/vault">
+          <ButtonLink variant="secondary" to="/vault">
             Write a note
-          </Link>
-          <Link className="primary-button" to="/ask">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/ask">
             Ask ECHO
-          </Link>
+          </ButtonLink>
         </div>
       </header>
 
@@ -132,9 +132,9 @@ export default function Dashboard() {
                   {relativeDue(next.due_at)} · {formatDateTime(next.due_at)}
                 </p>
               </div>
-              <Link className="ghost-button" to="/reminders">
+              <ButtonLink variant="secondary" to="/reminders">
                 All reminders
-              </Link>
+              </ButtonLink>
             </div>
           ) : (
             <div className="next-up">
@@ -143,9 +143,9 @@ export default function Dashboard() {
                 <p className="next-up-title">Nothing is due.</p>
                 <p className="next-up-when">No reminder is waiting in the next few days.</p>
               </div>
-              <Link className="ghost-button" to="/reminders">
+              <ButtonLink variant="secondary" to="/reminders">
                 Add a reminder
-              </Link>
+              </ButtonLink>
             </div>
           )}
 
@@ -200,9 +200,10 @@ export default function Dashboard() {
                         </span>
                       </Link>
                       <span className="row-link-when">{row.due_on ? formatDate(row.due_on) : 'no date'}</span>
-                      <button
-                        type="button"
-                        className="ghost-button owed-remind"
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="owed-remind"
                         onClick={() => {
                           void remindCommitment(row.id)
                             .then(() => setOwedNotice('Reminder set. It also goes to your email if that is on.'))
@@ -210,7 +211,7 @@ export default function Dashboard() {
                         }}
                       >
                         Remind me
-                      </button>
+                      </Button>
                     </div>
                   ))
                 )}

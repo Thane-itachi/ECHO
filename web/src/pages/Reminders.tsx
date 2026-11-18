@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Button } from '../components/ui';
 
 import {
   cancelReminder,
@@ -103,9 +104,9 @@ export default function Reminders() {
           onChange={(event) => setDueAt(event.target.value)}
           required
         />
-        <button type="submit" className="primary-button" disabled={busy || title.trim().length === 0}>
+        <Button variant="primary" type="submit" disabled={busy || title.trim().length === 0}>
           {busy ? 'Scheduling…' : 'Set reminder'}
-        </button>
+        </Button>
       </form>
 
       {error ? <p className="form-error">{error}</p> : null}
@@ -126,9 +127,9 @@ export default function Reminders() {
                 </div>
                 <div className="reminder-actions">
                   <span className={reminder.status === 'notified' ? 'chip chip-ai' : 'chip'}>{reminder.status}</span>
-                  <button type="button" className="ghost-button" onClick={() => void cancel(reminder)}>
+                  <Button variant="secondary" type="button" onClick={() => void cancel(reminder)}>
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { ButtonLink } from './ui';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { EchoMark } from './Logo';
@@ -46,17 +47,17 @@ export default function PublicLayout() {
 
         <div className="public-actions">
           {user ? (
-            <Link className="primary-button" to="/vault">
+            <ButtonLink variant="primary" to="/vault">
               Open my notes
-            </Link>
+            </ButtonLink>
           ) : (
             <>
-              <Link className="ghost-button" to="/login">
+              <ButtonLink variant="secondary" to="/login">
                 Sign in
-              </Link>
-              <Link className="primary-button" to="/login?start=signup">
+              </ButtonLink>
+              <ButtonLink variant="primary" to="/login?start=signup">
                 Create an account
-              </Link>
+              </ButtonLink>
             </>
           )}
         </div>

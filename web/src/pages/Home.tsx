@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { ButtonLink } from '../components/ui';
 
 import NavIcon from '../components/NavIcon';
 import { useAuth } from '../lib/auth';
@@ -47,21 +47,21 @@ export default function Home() {
         <div className="hero-actions">
           {user ? (
             <>
-              <Link className="primary-button" to="/dashboard">
+              <ButtonLink variant="primary" to="/dashboard">
                 Open ECHO
-              </Link>
-              <Link className="ghost-button" to="/ask">
+              </ButtonLink>
+              <ButtonLink variant="secondary" to="/ask">
                 Ask a question
-              </Link>
+              </ButtonLink>
             </>
           ) : (
             <>
-              <Link className="primary-button" to="/login?start=signup">
+              <ButtonLink variant="primary" to="/login?start=signup">
                 Create an account
-              </Link>
-              <Link className="ghost-button" to="/login">
+              </ButtonLink>
+              <ButtonLink variant="secondary" to="/login">
                 I already have an account
-              </Link>
+              </ButtonLink>
             </>
           )}
         </div>
@@ -88,9 +88,9 @@ export default function Home() {
       <section className="public-band">
         <div className="public-band-head">
           <h2>How it works, in three steps</h2>
-          <Link className="ghost-button" to="/how-it-works">
+          <ButtonLink variant="secondary" to="/how-it-works">
             Read it all
-          </Link>
+          </ButtonLink>
         </div>
         <ol className="steps">
           {STEPS.map((step) => (
@@ -105,9 +105,9 @@ export default function Home() {
       <section className="public-band is-quiet">
         <div className="public-band-head">
           <h2>Your notes stay yours</h2>
-          <Link className="ghost-button" to="/privacy">
+          <ButtonLink variant="secondary" to="/privacy">
             What is kept, and who can see it
-          </Link>
+          </ButtonLink>
         </div>
         <p className="public-lede">
           Every note is locked with your key before it is stored, so what sits on the server is unreadable
@@ -118,9 +118,9 @@ export default function Home() {
       <section className="public-band is-quiet">
         <div className="public-band-head">
           <h2>Stuck, or not sure where to start?</h2>
-          <Link className="ghost-button" to="/help">
+          <ButtonLink variant="secondary" to="/help">
             Read the questions
-          </Link>
+          </ButtonLink>
         </div>
         <p className="public-lede">
           Plain answers about saving a note, asking a question, reminders, making the words bigger, and

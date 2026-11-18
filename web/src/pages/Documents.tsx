@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '../components/ui';
 
 import {
   deleteDocument,
@@ -118,9 +119,9 @@ export default function Documents() {
                 </span>
               </div>
               <div className="row-actions">
-                <button type="button" className="ghost-button" onClick={() => void download(document)}>
+                <Button variant="secondary" type="button" onClick={() => void download(document)}>
                   Download
-                </button>
+                </Button>
                 <button type="button" className="danger-button" disabled={busy} onClick={() => void remove(document)}>
                   Delete
                 </button>

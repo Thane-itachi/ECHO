@@ -163,6 +163,49 @@
   background: var(--surface-3); color: var(--text); font-size: var(--text-label); white-space: nowrap; pointer-events: none;
 }
 
+@media (max-width: 560px) {
+  /* On a phone every button is a finger target, including the small ones:
+     a 34px "Remind me" beside a 44px row is the kind of thing people miss. */
+  .ui-btn--sm { min-height: 44px; padding: 0 var(--space-4); }
+}
+
 @media (max-width: 520px) {
   .ui-toast-stack { left: var(--space-4); right: var(--space-4); width: auto; }
+}
+
+/* ---- legacy names, one look ------------------------------------------------
+   Some pages still write .empty and .chip by hand. They now render as the
+   library's EmptyState and Badge rather than as a second visual language. */
+.empty {
+  display: block;
+  padding: var(--space-6) var(--space-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--fill-weak);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 0;
+  padding: 3px var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+button.chip.is-active,
+.chip[aria-pressed='true'] {
+  border-color: var(--brand-line);
+  background: var(--brand-wash);
+  color: var(--brand-text);
 }

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Button, ButtonLink } from '../components/ui';
 
 import { useAdminAuth } from './AdminAuth';
 import { EchoMark } from '../components/Logo';
@@ -49,12 +50,12 @@ export default function AdminShell() {
             <span className="account-label">{ROLE_LABEL[identity?.role ?? ''] ?? 'Admin'}</span>
             <span className="account-email">{identity?.email}</span>
           </div>
-          <a className="ghost-button" href="/vault">
+          <ButtonLink variant="secondary" to="/vault">
             Back to vault
-          </a>
-          <button type="button" className="ghost-button" onClick={signOut}>
+          </ButtonLink>
+          <Button variant="secondary" type="button" onClick={signOut}>
             Sign out
-          </button>
+          </Button>
         </div>
       </aside>
 

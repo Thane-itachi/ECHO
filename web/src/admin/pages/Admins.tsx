@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '../../components/ui';
 
 import { formatDateTime } from '../../lib/api';
 import * as adminApi from '../../lib/admin';
@@ -99,9 +100,9 @@ export default function Admins() {
           <p className="muted">{secret.email}</p>
           <code className="secret-value">{secret.totp_secret}</code>
           <p className="muted break-all">{secret.otpauth_url}</p>
-          <button type="button" className="ghost-button" onClick={() => setSecret(null)}>
+          <Button variant="secondary" type="button" onClick={() => setSecret(null)}>
             I have saved it
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -138,17 +139,17 @@ export default function Admins() {
               </td>
               {can('admins:write') ? (
                 <td className="row-actions">
-                  <button type="button" className="ghost-button" onClick={() => void rotate(row)}>
+                  <Button variant="secondary" type="button" onClick={() => void rotate(row)}>
                     New MFA secret
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost-button"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     disabled={row.id === identity?.id}
                     onClick={() => void toggle(row)}
                   >
                     {row.is_active ? 'Disable' : 'Enable'}
-                  </button>
+                  </Button>
                 </td>
               ) : null}
             </tr>
@@ -184,9 +185,9 @@ export default function Admins() {
                 ))}
               </select>
             </label>
-            <button type="submit" className="primary-button" disabled={busy || !email.trim() || password.length < 12}>
+            <Button variant="primary" type="submit" disabled={busy || !email.trim() || password.length < 12}>
               {busy ? 'Creating…' : 'Create'}
-            </button>
+            </Button>
           </form>
         </section>
       ) : null}

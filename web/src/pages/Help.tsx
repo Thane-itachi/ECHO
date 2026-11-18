@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ButtonLink } from '../components/ui';
 import { Link } from 'react-router-dom';
 
 const QUESTIONS: { q: string; a: ReactNode }[] = [
@@ -123,15 +124,15 @@ export default function Help() {
       </div>
 
       <div className="prose prose-actions">
-        <Link className="ghost-button" to="/how-it-works">
+        <ButtonLink variant="secondary" to="/how-it-works">
           How ECHO works
-        </Link>
-        <Link className="ghost-button" to="/privacy">
+        </ButtonLink>
+        <ButtonLink variant="secondary" to="/privacy">
           Your privacy
-        </Link>
-        <Link className="primary-button" to="/login">
+        </ButtonLink>
+        <ButtonLink variant="primary" to="/login">
           Sign in
-        </Link>
+        </ButtonLink>
       </div>
     </main>
   );

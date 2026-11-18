@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+
+import { Button, ButtonLink } from '../components/ui';
 
 import { formatDate } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -91,22 +92,22 @@ export default function Profile() {
       <section className="report-section">
         <h2 className="section-title">Keep going</h2>
         <div className="sidebar-links profile-links">
-          <Link className="ghost-button" to="/security">
+          <ButtonLink variant="secondary" to="/security">
             Password and security
-          </Link>
-          <Link className="ghost-button" to="/settings">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/settings">
             Notifications and settings
-          </Link>
-          <Link className="ghost-button" to="/privacy">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/privacy">
             How privacy works
-          </Link>
-          <Link className="ghost-button" to="/architecture">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/architecture">
             How ECHO is built
-          </Link>
+          </ButtonLink>
         </div>
-        <button type="button" className="ghost-button is-danger" onClick={signOut}>
+        <Button variant="danger" onClick={signOut}>
           Sign out
-        </button>
+        </Button>
       </section>
     </div>
   );

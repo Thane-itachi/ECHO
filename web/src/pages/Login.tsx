@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Button } from '../components/ui';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { EchoMark } from '../components/Logo';
@@ -291,9 +292,9 @@ export default function Login() {
 
               {error ? <p className="form-error">{error}</p> : null}
 
-              <button type="submit" className="primary-button" disabled={busy}>
+              <Button variant="primary" type="submit" disabled={busy}>
                 {busy ? (step === 'signup' ? 'Making your account…' : 'Signing in…') : step === 'signup' ? 'Make my account' : 'Sign in'}
-              </button>
+              </Button>
               {busy && slow ? (
                 <p className="auth-fine" role="status">
                   Still working. A slow connection can take a few seconds. Please keep this page open.
@@ -327,9 +328,9 @@ export default function Login() {
               </label>
               <CodeField value={code} onChange={setCode} label="The 6 digits from the email" />
               {error ? <p className="form-error">{error}</p> : null}
-              <button type="submit" className="primary-button" disabled={busy || code.length !== 6}>
+              <Button variant="primary" type="submit" disabled={busy || code.length !== 6}>
                 {busy ? 'Checking…' : 'Check the code and sign in'}
-              </button>
+              </Button>
               <div className="auth-row">
                 <button type="button" className="link-button" onClick={resend} disabled={cooldown > 0}>
                   {cooldown > 0 ? `Send another code in ${cooldown}s` : 'Send another code'}
@@ -348,9 +349,9 @@ export default function Login() {
                 This account asks for a code every time you sign in. The code works once and expires in 5 minutes.
               </p>
               {error ? <p className="form-error">{error}</p> : null}
-              <button type="submit" className="primary-button" disabled={busy || code.length !== 6}>
+              <Button variant="primary" type="submit" disabled={busy || code.length !== 6}>
                 {busy ? 'Checking…' : 'Open my vault'}
-              </button>
+              </Button>
               <div className="auth-row">
                 <button type="button" className="link-button" onClick={resend} disabled={cooldown > 0}>
                   {cooldown > 0 ? `Send another code in ${cooldown}s` : 'Send another code'}
@@ -375,9 +376,9 @@ export default function Login() {
                 />
               </label>
               {error ? <p className="form-error">{error}</p> : null}
-              <button type="submit" className="primary-button" disabled={busy}>
+              <Button variant="primary" type="submit" disabled={busy}>
                 {busy ? 'One moment…' : 'Email me a reset code'}
-              </button>
+              </Button>
               <button type="button" className="link-button" onClick={() => go('signin')}>
                 Back to sign in
               </button>
@@ -400,13 +401,14 @@ export default function Login() {
                 <small>At least 10 characters. This signs out your other devices.</small>
               </label>
               {error ? <p className="form-error">{error}</p> : null}
-              <button
+              <Button
                 type="submit"
-                className="primary-button"
+                variant="primary"
+                block
                 disabled={busy || code.length !== 6 || newPassword.length < 10}
               >
                 {busy ? 'Saving…' : 'Set my new password'}
-              </button>
+              </Button>
               <button type="button" className="link-button" onClick={() => go('signin')}>
                 Back to sign in
               </button>

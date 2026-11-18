@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Button, ButtonLink } from '../../components/ui';
+import { useSearchParams } from 'react-router-dom';
 
 import { EchoMark } from '../../components/Logo';
 import * as adminApi from '../../lib/admin';
@@ -139,9 +140,9 @@ export default function AdminEnrol() {
               Links work once and expire after three days. Ask whoever sent it for a fresh one, then open
               that instead of this page.
             </p>
-            <Link className="primary-button" to="/admin/login">
+            <ButtonLink variant="primary" to="/admin/login">
               Go to sign in
-            </Link>
+            </ButtonLink>
           </>
         ) : null}
 
@@ -180,9 +181,9 @@ export default function AdminEnrol() {
                 <small>{mismatch ? 'These two don’t match yet.' : 'Same password, typed twice.'}</small>
               </label>
               {problem ? <p className="form-error">{problem}</p> : null}
-              <button type="submit" className="primary-button" disabled={!canSubmit}>
+              <Button variant="primary" type="submit" disabled={!canSubmit}>
                 {busy ? 'Saving…' : 'Continue to the authenticator'}
-              </button>
+              </Button>
             </form>
             <p className="muted">
               Next you’ll scan one QR code with an authenticator app. Every sign-in asks for the six digits it
@@ -203,9 +204,9 @@ export default function AdminEnrol() {
               <div className="enrol-secret-text">
                 <span className="enrol-label">Can’t scan? Type this key</span>
                 <code className="enrol-key">{granted.totp_secret.match(/.{1,4}/g)?.join(' ')}</code>
-                <button type="button" className="ghost-button" onClick={copySecret}>
+                <Button variant="secondary" type="button" onClick={copySecret}>
                   {copied ? 'Copied' : 'Copy key'}
-                </button>
+                </Button>
                 <span className="enrol-hint">Account name: {granted.email}</span>
               </div>
             </div>
@@ -224,9 +225,9 @@ export default function AdminEnrol() {
                 <small>This proves the app and the server share the same secret.</small>
               </label>
               {problem ? <p className="form-error">{problem}</p> : null}
-              <button type="submit" className="primary-button" disabled={busy || code.length !== 6}>
+              <Button variant="primary" type="submit" disabled={busy || code.length !== 6}>
                 {busy ? 'Checking…' : 'Finish enrolment'}
-              </button>
+              </Button>
             </form>
           </>
         ) : null}
@@ -238,9 +239,9 @@ export default function AdminEnrol() {
               {granted.email} is enrolled as {granted.role.replace('_', ' ')}. The link is used up now, and
               only your password and your authenticator open this console.
             </p>
-            <Link className="primary-button" to="/admin/login">
+            <ButtonLink variant="primary" to="/admin/login">
               Sign in to the console
-            </Link>
+            </ButtonLink>
           </>
         ) : null}
       </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { Button } from '../../components/ui';
 import { formatDate } from '../../lib/api';
 import * as adminApi from '../../lib/admin';
 import { adminErrorMessage, useAdminAuth } from '../AdminAuth';
@@ -80,14 +81,14 @@ export default function Users() {
                 </td>
                 {can('users:write') ? (
                   <td>
-                    <button
-                      type="button"
-                      className="ghost-button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       disabled={busyId === row.id}
                       onClick={() => void toggle(row)}
                     >
                       {row.is_active ? 'Disable' : 'Enable'}
-                    </button>
+                    </Button>
                   </td>
                 ) : null}
               </tr>

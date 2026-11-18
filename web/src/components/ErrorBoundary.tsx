@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Button } from './ui';
 import { EchoMark } from './Logo';
 
 interface Props {
@@ -35,12 +36,12 @@ export default class ErrorBoundary extends Component<Props, State> {
         <h1>This page failed to load</h1>
         <p className="muted">{error.message}</p>
         <div className="form-actions">
-          <button type="button" className="primary-button" onClick={() => this.setState({ error: null })}>
+          <Button variant="primary" type="button" onClick={() => this.setState({ error: null })}>
             Try again
-          </button>
-          <a className="ghost-button" href="/vault">
+          </Button>
+          <Button variant="secondary" type="button" onClick={() => window.location.assign('/vault')}>
             Back to the vault
-          </a>
+          </Button>
         </div>
       </div>
     );

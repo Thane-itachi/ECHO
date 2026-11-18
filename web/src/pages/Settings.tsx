@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import { ButtonLink } from '../components/ui';
 
 import NotificationToggle from '../components/NotificationToggle';
 import { ApiError } from '../lib/api';
@@ -118,21 +119,21 @@ export default function Settings() {
       <section className="report-section">
         <h2 className="section-title">Your account</h2>
         <div className="sidebar-links profile-links">
-          <Link className="ghost-button" to="/profile">
+          <ButtonLink variant="secondary" to="/profile">
             Profile
-          </Link>
-          <Link className="ghost-button" to="/security">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/security">
             Password and security
-          </Link>
-          <Link className="ghost-button" to="/privacy">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/privacy">
             How privacy works
-          </Link>
-          <Link className="ghost-button" to="/architecture">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/architecture">
             How ECHO is built
-          </Link>
-          <Link className="ghost-button" to="/help">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/help">
             Questions
-          </Link>
+          </ButtonLink>
         </div>
       </section>
 

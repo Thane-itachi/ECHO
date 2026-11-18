@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '../../components/ui';
 import { useNavigate } from 'react-router-dom';
 
 import { adminErrorMessage, useAdminAuth } from '../AdminAuth';
@@ -75,9 +76,9 @@ export default function AdminLogin() {
             />
           </label>
           {error ? <p className="form-error">{error}</p> : null}
-          <button type="submit" className="primary-button" disabled={busy || totp.length !== 6}>
+          <Button variant="primary" type="submit" disabled={busy || totp.length !== 6}>
             {busy ? 'Verifying…' : 'Enter console'}
-          </button>
+          </Button>
         </form>
         <p className="muted">
           Locked out? Run <code>python -m app.scripts.create_admin --email you@example.com --rotate</code> on the

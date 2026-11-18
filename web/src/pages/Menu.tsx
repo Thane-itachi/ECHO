@@ -1,4 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
+import { Button } from '../components/ui';
 
 import { useAuth } from '../lib/auth';
 import { TEXT_SIZES, useTextSize } from '../lib/textSize';
@@ -114,9 +115,9 @@ export default function Menu() {
       </section>
 
       <div className="menu-signout">
-        <button type="button" className="ghost-button" onClick={signOut}>
+        <Button variant="secondary" type="button" onClick={signOut}>
           Sign out
-        </button>
+        </Button>
         <p className="menu-note">Everything in your vault is sealed with your own key.</p>
       </div>
     </div>

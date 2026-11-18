@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '../components/ui';
 
 import {
   CATEGORIES,
@@ -121,9 +122,9 @@ export default function Proposals() {
             Say no and it is gone.
           </p>
         </div>
-        <button type="button" className="ghost-button" onClick={() => setDrafting((value) => !value)}>
+        <Button variant="secondary" type="button" onClick={() => setDrafting((value) => !value)}>
           {drafting ? 'Close' : 'Draft one by hand'}
-        </button>
+        </Button>
       </header>
 
       <form className="form capture-form" onSubmit={queueCapture}>
@@ -137,9 +138,9 @@ export default function Proposals() {
           />
         </label>
         <div className="form-actions">
-          <button type="submit" className="primary-button" disabled={queuing || !note.trim()}>
+          <Button variant="primary" type="submit" disabled={queuing || !note.trim()}>
             {queuing ? 'Queuing…' : 'Queue for extraction'}
-          </button>
+          </Button>
         </div>
         {captureNote ? <p className="muted">{captureNote}</p> : null}
       </form>
@@ -179,9 +180,9 @@ export default function Proposals() {
             </select>
           </label>
           <div className="form-actions">
-            <button type="submit" className="primary-button" disabled={!title.trim() || !content.trim()}>
+            <Button variant="primary" type="submit" disabled={!title.trim() || !content.trim()}>
               Add to the queue
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}
@@ -231,22 +232,22 @@ export default function Proposals() {
 
               {proposal.status === 'pending' ? (
                 <div className="proposal-actions">
-                  <button
-                    type="button"
-                    className="primary-button"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     disabled={busyId === proposal.id}
                     onClick={() => void decide(proposal, 'approve')}
                   >
                     Approve
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost-button"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     disabled={busyId === proposal.id}
                     onClick={() => void decide(proposal, 'reject')}
                   >
                     Reject
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <p className="proposal-state">

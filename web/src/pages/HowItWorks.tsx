@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { ButtonLink } from '../components/ui';
 
 export default function HowItWorks() {
   return (
@@ -93,15 +93,15 @@ export default function HowItWorks() {
         </section>
 
         <section className="prose-actions">
-          <Link className="primary-button" to="/login?start=signup">
+          <ButtonLink variant="primary" to="/login?start=signup">
             Create an account
-          </Link>
-          <Link className="ghost-button" to="/privacy">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/privacy">
             What is kept about me
-          </Link>
-          <Link className="ghost-button" to="/help">
+          </ButtonLink>
+          <ButtonLink variant="secondary" to="/help">
             Questions people ask
-          </Link>
+          </ButtonLink>
         </section>
       </div>
     </main>

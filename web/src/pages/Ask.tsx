@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Button } from '../components/ui';
+
 import { ask, formatDate, type AskAnswer } from '../lib/api';
 import { errorMessage, useAuthFailureHandler } from '../lib/auth';
 
@@ -56,9 +58,9 @@ export default function Ask() {
           placeholder="Who borrowed my laptop?"
           aria-label="Ask ECHO"
         />
-        <button type="submit" className="primary-button" disabled={busy || question.trim().length === 0}>
+        <Button variant="primary" type="submit" disabled={busy || question.trim().length === 0}>
           {busy ? 'Thinking…' : 'Ask'}
-        </button>
+        </Button>
       </form>
 
       <div className="suggestions">

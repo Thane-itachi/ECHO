@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Button } from './ui';
 
 import { sendTestNotification } from '../lib/api';
 import {
@@ -119,9 +120,9 @@ export default function NotificationToggle() {
         </span>
       </label>
       {on ? (
-        <button type="button" className="ghost-button notify-test" disabled={busy} onClick={() => void sendTest()}>
+        <Button variant="secondary" type="button" disabled={busy} onClick={() => void sendTest()}>
           Send a test notification
-        </button>
+        </Button>
       ) : null}
       {note ? <p className="sidebar-note">{note}</p> : null}
       {error ? <p className="sidebar-note notify-error">{error}</p> : null}
