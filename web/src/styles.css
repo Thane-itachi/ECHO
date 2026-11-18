@@ -492,6 +492,27 @@ button {
   counter-reset: nav;
 }
 
+/* The rail is grouped: a small label, then its destinations. The label is the
+   only thing that says "these belong together", so it is quiet, uppercase and
+   never interactive. */
+.nav-group {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.nav-group + .nav-group {
+  margin-top: 0.85rem;
+}
+
+.nav-group-label {
+  padding: 0 0.55rem 0.22rem;
+  color: var(--panel-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .nav-item {
   position: relative;
   display: grid;
@@ -2890,13 +2911,22 @@ summary:focus-visible {
     display: none;
   }
 
-  /* six destinations, all visible, none hiding past the right edge */
+  /* On a phone the rail is a bar: groups dissolve into one grid so every
+     destination stays visible without a single one hiding past the edge. */
   .nav {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.35rem;
     overflow: visible;
     padding-bottom: 0;
+  }
+
+  .nav-group {
+    display: contents;
+  }
+
+  .nav-group-label {
+    display: none;
   }
 
   .nav-item {

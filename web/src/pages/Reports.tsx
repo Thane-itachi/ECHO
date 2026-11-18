@@ -127,7 +127,7 @@ export default function Reports() {
     <div className="page page-narrow">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Reports</p>
+          <p className="eyebrow">Insights</p>
           <h1>What your memory holds</h1>
           <p className="page-sub">
             Counted from your own notes on {formatDate(new Date().toISOString())}. Nothing here is a guess, and

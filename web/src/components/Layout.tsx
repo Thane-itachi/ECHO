@@ -6,22 +6,40 @@ import NavIcon from '../components/NavIcon';
 import { listProposals } from '../lib/api';
 import { useAuth } from '../lib/auth';
 
-/* Plain words, each with a picture. "Vault" and "captures" are the sort of words
-   that mean nothing to someone who has not spent their life in software.
+type NavItem = { to: string; label: string; short: string; hint: string; icon: string };
 
-   The order is the order of the day: what needs you, what you saved, what you
-   want to find, and only then the shelves. Nine destinations is what fits a
-   phone as a 3 x 3 grid without a single one hiding past the edge. */
-const NAV = [
-  { to: '/dashboard', label: 'Today', short: 'Today', hint: 'What needs you', icon: 'today' },
-  { to: '/vault', label: 'My notes', short: 'Notes', hint: 'Everything you have saved', icon: 'notes' },
-  { to: '/ask', label: 'Ask a question', short: 'Ask', hint: 'Find one thing you saved', icon: 'ask' },
-  { to: '/people', label: 'People', short: 'People', hint: 'Names you have saved', icon: 'people' },
-  { to: '/proposals', label: 'Things to check', short: 'To check', hint: 'ECHO found these. Say yes or no.', icon: 'check' },
-  { to: '/reminders', label: 'Reminders', short: 'Reminders', hint: 'Dates you must not miss', icon: 'bell' },
-  { to: '/documents', label: 'Files', short: 'Files', hint: 'Papers and pictures you added', icon: 'files' },
-  { to: '/search', label: 'Search', short: 'Search', hint: 'Look through every word', icon: 'search' },
-  { to: '/reports', label: 'Reports', short: 'Reports', hint: 'What your memory holds', icon: 'chart' },
+/* Grouped the way the product is: what is happening, what you can ask, who you
+   know, what is owed, and the shelves. Groups appear only where a destination
+   exists today; Daily Briefing, Memory Graph, Projects and Calendar arrive with
+   the pages that make them real, not as links that go nowhere. */
+const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
+  {
+    label: 'Overview',
+    items: [
+      { to: '/dashboard', label: 'Today', short: 'Today', hint: 'What needs you', icon: 'today' },
+      { to: '/reports', label: 'Insights', short: 'Stats', hint: 'What your memory holds', icon: 'chart' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [
+      { to: '/ask', label: 'Ask ECHO', short: 'Ask', hint: 'Find one thing you saved', icon: 'ask' },
+      { to: '/search', label: 'Search', short: 'Search', hint: 'Look through every word', icon: 'search' },
+      { to: '/proposals', label: 'Things to check', short: 'To check', hint: 'ECHO found these. Say yes or no.', icon: 'check' },
+    ],
+  },
+  {
+    label: 'Connections',
+    items: [{ to: '/people', label: 'People', short: 'People', hint: 'Names you have saved', icon: 'people' }],
+  },
+  {
+    label: 'Productivity',
+    items: [{ to: '/reminders', label: 'Reminders', short: 'Reminders', hint: 'Dates you must not miss', icon: 'bell' }],
+  },
+  {
+    label: 'Library',
+    items: [{ to: '/documents', label: 'Files', short: 'Files', hint: 'Papers and pictures you added', icon: 'files' }],
+  },
 ];
 
 export default function Layout() {
@@ -61,8 +79,11 @@ export default function Layout() {
           </Link>
         </div>
 
-        <nav className="nav">
-          {NAV.map((item) => (
+        <nav className="nav" aria-label="Main">
+          {NAV_GROUPS.map((group) => (
+            <div className="nav-group" key={group.label}>
+              <p className="nav-group-label">{group.label}</p>
+              {group.items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -74,8 +95,10 @@ export default function Layout() {
                 <span className="nav-short">{item.short}</span>
                 {item.to === '/proposals' && pending ? <span className="badge">{pending}</span> : null}
               </span>
-              <span className="nav-hint">{item.hint}</span>
-            </NavLink>
+                <span className="nav-hint">{item.hint}</span>
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
 
