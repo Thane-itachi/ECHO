@@ -5,6 +5,7 @@ import NotificationToggle from '../components/NotificationToggle';
 import { ApiError } from '../lib/api';
 import { errorMessage, useAuth } from '../lib/auth';
 import { TEXT_SIZES, useTextSize } from '../lib/textSize';
+import { useTheme, type Theme } from '../lib/theme';
 
 /**
  * Everything that changes how ECHO behaves, in one place and in plain words.
@@ -16,6 +17,7 @@ import { TEXT_SIZES, useTextSize } from '../lib/textSize';
 export default function Settings() {
   const { user, setReminderEmail } = useAuth();
   const [textSize, setTextSize] = useTextSize();
+  const [theme, setTheme] = useTheme();
   const [reminderBusy, setReminderBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
@@ -59,6 +61,28 @@ export default function Settings() {
                   onClick={() => setTextSize(size.value)}
                 >
                   {size.label}
+                </button>
+              ))}
+            </span>
+          </div>
+
+          <div className="set-row">
+            <span>
+              <b>Appearance</b>
+              <small>
+                Dark is ECHO's own ground. Light is a cool paper for daylight, and the choice is remembered on this
+                device.
+              </small>
+            </span>
+            <span className="text-size-buttons" role="group" aria-label="Appearance">
+              {(['dark', 'light'] as Theme[]).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={theme === option}
+                  onClick={() => setTheme(option)}
+                >
+                  {option === 'dark' ? 'Dark' : 'Light'}
                 </button>
               ))}
             </span>

@@ -1,0 +1,257 @@
+/* ============================================================================
+   ECHO design tokens — stage 1 of the design system.
+
+   One place for every colour, size, space, radius and shadow in the product.
+   Nothing below this file should invent a value: components read these names,
+   and the light theme is a second set of answers to the same names.
+
+   Naming has two layers on purpose:
+   1. primitives  — the raw palette (navy-950, violet-500, slate-400 ...)
+   2. semantic    — what a value is *for* (bg, surface, text, brand, danger)
+   Components use the semantic layer only, so a theme is a swap of layer 2.
+   ========================================================================== */
+
+:root {
+  /* ---- primitives: the confirmed ECHO palette ------------------------------ */
+  --navy-950: #080d1b;
+  --navy-900: #0b1222;
+  --navy-850: #10182b;
+  --navy-800: #141f36;
+  --navy-700: #1b2942;
+  --navy-600: #263248;
+  --navy-500: #34435e;
+
+  --violet-600: #5f3fe0;
+  --violet-500: #7957ff;
+  --violet-450: #6d46f2;
+  --violet-400: #9b7bff;
+  --purple-500: #a855f7;
+
+  --cyan-400: #22d3ee;
+  --cyan-600: #0e7490;
+
+  --white-50: #f8fafc;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-700: #334155;
+
+  --green-500: #22c55e;
+  --green-700: #15803d;
+  --amber-500: #f59e0b;
+  --amber-700: #b45309;
+  --red-400: #f87171;
+  --red-700: #b91c1c;
+
+  /* ---- semantic: dark, the default --------------------------------------- */
+  --bg: var(--navy-950);
+  --bg-elevated: var(--navy-900);
+  --surface: var(--navy-850);
+  --surface-2: var(--navy-800);
+  --surface-3: var(--navy-700);
+  --rail: #060a14;
+  --rail-2: var(--navy-900);
+
+  --text: var(--white-50);
+  --text-secondary: var(--slate-300);
+  --text-muted: var(--slate-400);
+  --text-faint: #8b98ab;
+
+  --border: var(--navy-600);
+  --border-strong: var(--navy-500);
+
+  --brand: var(--violet-450);        /* fills: buttons, active rows */
+  --brand-text: var(--violet-400);   /* brand colour as text on this ground */
+  --brand-deep: var(--violet-600);   /* hover and pressed */
+  --brand-wash: rgba(121, 87, 255, 0.14);
+  --brand-line: rgba(155, 123, 255, 0.42);
+  --accent: var(--cyan-400);
+  --accent-wash: rgba(34, 211, 238, 0.12);
+
+  --success: var(--green-500);
+  --success-wash: rgba(34, 197, 94, 0.12);
+  --warning: var(--amber-500);
+  --warning-wash: rgba(245, 158, 11, 0.12);
+  --danger: var(--red-400);
+  --danger-wash: rgba(248, 113, 113, 0.12);
+  --danger-line: rgba(248, 113, 113, 0.45);
+  --info: var(--cyan-400);
+
+  --on-brand: #ffffff;
+  --selection: rgba(121, 87, 255, 0.3);
+  --focus-ring: rgba(155, 123, 255, 0.45);
+  --disabled-bg: var(--navy-700);
+  --disabled-text: var(--slate-400);
+
+  /* ---- spacing scale: 4 8 12 16 20 24 32 40 48 64 ------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- radius ------------------------------------------------------------ */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* ---- shadows and effects (restrained: no glow on text) ------------------ */
+  --shadow-card: 0 1px 0 rgba(0, 0, 0, 0.35), 0 12px 28px -22px rgba(0, 0, 0, 0.9);
+  --shadow-dropdown: 0 12px 28px -14px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 32px 64px -24px rgba(0, 0, 0, 0.85), 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-focus: 0 0 0 3px var(--focus-ring);
+  --shadow-brand: 0 10px 30px -18px rgba(121, 87, 255, 0.55);
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+
+  /* ---- typography -------------------------------------------------------- */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --text-display: clamp(2.1rem, 4.2vw, 3rem);
+  --text-h1: clamp(1.6rem, 2.6vw, 2.1rem);
+  --text-h2: 1.25rem;
+  --text-h3: 1.05rem;
+  --text-card: 1rem;
+  --text-body: 1rem;
+  --text-sm: 0.875rem;
+  --text-label: 0.72rem;
+  --text-button: 0.82rem;
+  --text-input: 1rem;
+
+  --leading-tight: 1.15;
+  --leading-heading: 1.3;
+  --leading-body: 1.6;
+
+  --tracking-display: -0.028em;
+  --tracking-heading: -0.018em;
+  --tracking-label: 0.14em;
+
+  color-scheme: dark;
+}
+
+/* ---- semantic: light -----------------------------------------------------
+   Not an inversion: the rail stays deep navy (it is the brand's frame), the
+   paper turns to a cool off-white, and every accent darkens enough to keep the
+   same contrast ratios as the dark theme. */
+[data-theme='light'] {
+  --bg: #f7f8fc;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f1f3f9;
+  --surface-3: #e7eaf3;
+  --rail: #080d1b;
+  --rail-2: var(--navy-900);
+
+  --text: #0b1222;
+  --text-secondary: var(--slate-700);
+  --text-muted: #52627a;
+  --text-faint: #5c6b81;
+
+  --border: #dbe2ee;
+  --border-strong: #c3cddd;
+
+  --brand: var(--violet-600);
+  --brand-text: var(--violet-600);
+  --brand-deep: #4b2fc0;
+  --brand-wash: rgba(95, 63, 224, 0.08);
+  --brand-line: rgba(95, 63, 224, 0.35);
+  --accent: var(--cyan-600);
+  --accent-wash: rgba(14, 116, 144, 0.1);
+
+  --success: var(--green-700);
+  --success-wash: rgba(21, 128, 61, 0.1);
+  --warning: var(--amber-700);
+  --warning-wash: rgba(180, 83, 9, 0.1);
+  --danger: var(--red-700);
+  --danger-wash: rgba(185, 28, 28, 0.08);
+  --danger-line: rgba(185, 28, 28, 0.4);
+  --info: var(--cyan-600);
+
+  --on-brand: #ffffff;
+  --selection: rgba(95, 63, 224, 0.18);
+  --focus-ring: rgba(95, 63, 224, 0.4);
+  --disabled-bg: #e4e8f1;
+  --disabled-text: #55647a;
+
+  --shadow-card: 0 1px 2px rgba(11, 18, 34, 0.05), 0 12px 24px -20px rgba(11, 18, 34, 0.35);
+  --shadow-dropdown: 0 14px 30px -18px rgba(11, 18, 34, 0.3), 0 2px 6px rgba(11, 18, 34, 0.08);
+  --shadow-modal: 0 32px 60px -28px rgba(11, 18, 34, 0.4), 0 2px 8px rgba(11, 18, 34, 0.1);
+  --shadow-brand: 0 10px 30px -20px rgba(95, 63, 224, 0.45);
+
+  color-scheme: light;
+}
+
+/* ---- the old names, now pointing at the system ---------------------------
+   The stylesheet grew up with these names (paper, ink, leather). They are kept
+   as aliases so every existing rule follows the design system without being
+   rewritten, and so a future rename is one edit here rather than 4000 lines. */
+:root,
+[data-theme='light'] {
+  --paper: var(--bg);
+  --paper-2: var(--bg-elevated);
+  --paper-3: var(--surface-2);
+  --ink: var(--text);
+  --ink-2: var(--text-secondary);
+  --ink-3: var(--text-muted);
+  --ink-4: var(--text-faint);
+  --rule: var(--border);
+  --rule-2: var(--border-strong);
+
+  --leather: var(--brand);
+  --leather-mark: var(--brand-text);
+  --leather-deep: var(--brand-deep);
+  --leather-wash: var(--brand-wash);
+  --forest: var(--success);
+  --forest-wash: var(--success-wash);
+  --ox: var(--danger);
+  --ox-wash: var(--danger-wash);
+
+  --panel: var(--rail);
+  --panel-2: var(--rail-2);
+  --panel-text: var(--white-50);
+  --panel-muted: var(--slate-300);
+  --panel-rule: rgba(255, 255, 255, 0.12);
+
+  --fill-weak: rgba(255, 255, 255, 0.04);
+  --fill: rgba(255, 255, 255, 0.06);
+  --fill-soft: rgba(255, 255, 255, 0.05);
+  --fill-strong: rgba(255, 255, 255, 0.09);
+  --field: var(--surface-2);
+  --accent-line: var(--brand-line);
+  --ox-line: var(--danger-line);
+  --disabled-ink: var(--disabled-text);
+  --on-accent: var(--on-brand);
+
+  --display: var(--font-display);
+  --reading: var(--font-sans);
+  --mark: var(--font-display);
+  --sans: var(--font-sans);
+  --mono: var(--font-mono);
+  --shadow-sheet: var(--shadow-card);
+  --shadow-lift: var(--shadow-dropdown);
+}
+
+/* In light mode the soft fills become dark ink at low opacity, otherwise
+   "a little white" is invisible on white. */
+[data-theme='light'] {
+  --fill-weak: rgba(11, 18, 34, 0.03);
+  --fill: rgba(11, 18, 34, 0.05);
+  --fill-soft: rgba(11, 18, 34, 0.04);
+  --fill-strong: rgba(11, 18, 34, 0.07);
+}

@@ -1,4 +1,5 @@
 @import url('/fonts/fonts.css');
+@import url('./tokens.css');
 
 /* ============================================================================
    ECHO — a private archive, set like a book.
@@ -6,64 +7,9 @@
    hairline rules instead of floating cards, and numbers set in the margin.
    ========================================================================== */
 
-:root {
-  /* ---- Midnight -----------------------------------------------------------
-     The same archive at night: charcoal paper, pale ink, one steel blue for
-     anything you can press. Every text/background pair below clears WCAG AA
-     for normal text, and running copy clears AAA, so nothing in the app became
-     the pretty-but-unreadable kind of dark mode. */
-  --paper: #0f1613;
-  --paper-2: #131c18;
-  --paper-3: #19241f;
-  --ink: #f2ebdd;
-  --ink-2: #e5dccb;
-  --ink-3: #bcb19c;
-  --ink-4: #9c9280;
-  --rule: #27342d;
-  --rule-2: #3b4b42;
-
-  /* Blue means "this does something". Green means "done". Red means "this destroys". */
-  --leather: #c8a45c;
-  --leather-mark: #e3cb96;
-  --leather-deep: #a8853f;
-  --leather-wash: #20221a;
-  --forest: #79bb95;
-  --forest-wash: #16241c;
-  --ox: #dd8371;
-  --ox-wash: #2a1915;
-
-  /* The rail is one shade darker than the page, so it still reads as the edge. */
-  --panel: #0a0f0d;
-  --panel-2: #101714;
-  --panel-text: #f2ebdd;
-  --panel-muted: #bdb3a0;
-  --panel-rule: #232f28;
-
-  /* soft fills, fields and rings: the parts that used to be "a little white" */
-  --fill-weak: rgba(255, 255, 255, 0.035);
-  --fill: rgba(255, 255, 255, 0.055);
-  --fill-soft: rgba(255, 255, 255, 0.045);
-  --fill-strong: rgba(255, 255, 255, 0.08);
-  --field: #17211b;
-  --focus-ring: rgba(227, 203, 150, 0.22);
-  --selection: rgba(200, 164, 92, 0.26);
-  --accent-line: rgba(200, 164, 92, 0.42);
-  --ox-line: rgba(221, 131, 113, 0.45);
-  --disabled-bg: #25302a;
-  --disabled-ink: #a89e8b;
-  --on-accent: #151a12;
-
-  --display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
-  --reading: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
-  --mark: 'Instrument Serif', 'Newsreader', Georgia, serif;
-  --sans: 'Karla', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
-
-  --shadow-sheet: 0 1px 0 rgba(0, 0, 0, 0.35), 0 18px 40px -28px rgba(0, 0, 0, 0.8);
-  --shadow-lift: 0 1px 0 rgba(0, 0, 0, 0.4), 0 26px 52px -30px rgba(0, 0, 0, 0.9);
-  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
-}
-
+/* Every colour, size, space, radius and shadow now lives in tokens.css.
+   The names below it (--paper, --ink, --leather ...) are aliases of the design
+   system, so this stylesheet is about layout and behaviour only. */
 *,
 *::before,
 *::after {
@@ -177,7 +123,7 @@ button {
 :focus-visible {
   outline: 2px solid var(--leather);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* --------------------------------------------------------------- wording bits */
@@ -253,7 +199,7 @@ button {
   gap: 0.45rem;
   padding: 0.58rem 1.05rem;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-family: var(--sans);
   font-size: 0.88rem;
   font-weight: 600;
@@ -315,7 +261,7 @@ button {
   gap: 0.3rem;
   padding: 0.16rem 0.42rem;
   border: 1px solid var(--rule-2);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--fill-chip, rgba(255, 255, 255, 0.055));
   font-family: var(--sans);
   font-size: 0.62rem;
@@ -344,7 +290,7 @@ button {
   min-width: 1.15rem;
   height: 1.15rem;
   padding: 0 0.25rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--leather);
   color: var(--on-accent);
   font-family: var(--mono);
@@ -387,7 +333,7 @@ button {
   width: 100%;
   padding: 0.6rem 0.72rem;
   border: 1px solid var(--rule-2);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--field);
   color: var(--ink);
   font-size: 0.94rem;
@@ -529,7 +475,7 @@ button {
   font-size: 1.22rem;
   font-weight: 400;
   letter-spacing: 0.3em;
-  color: #f4ece0;
+  color: var(--panel-text);
 }
 
 .brand-tagline {
@@ -552,7 +498,7 @@ button {
   grid-template-columns: 1.9rem minmax(0, 1fr);
   column-gap: 0.35rem;
   padding: 0.5rem 0.55rem 0.5rem 0.45rem;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   color: var(--panel-text);
   transition: background-color 140ms var(--ease), color 140ms var(--ease);
@@ -619,7 +565,7 @@ button {
   grid-column: 2;
   font-size: 0.74rem;
   line-height: 1.35;
-  color: #877d6d;
+  color: var(--panel-muted);
 }
 
 .account {
@@ -633,7 +579,7 @@ button {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #877d6d;
+  color: var(--panel-muted);
 }
 
 .account-email {
@@ -644,16 +590,16 @@ button {
 }
 
 .sidebar .ghost-button {
-  border-color: #342d24;
-  color: #c9c0b1;
+  border-color: var(--panel-rule);
+  color: var(--panel-muted);
   justify-content: flex-start;
   font-size: 0.82rem;
   font-weight: 500;
 }
 
 .sidebar .ghost-button:hover {
-  border-color: #4b4133;
-  color: #f2ebdf;
+  border-color: rgba(255, 255, 255, 0.28);
+  color: var(--panel-text);
   background: rgba(255, 255, 255, 0.04);
 }
 
@@ -662,8 +608,8 @@ button {
   gap: 0.55rem;
   align-items: flex-start;
   padding: 0.55rem 0.6rem;
-  border: 1px solid rgba(242, 237, 227, 0.16);
-  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-sm);
   color: var(--paper-3);
   font-size: 0.78rem;
   line-height: 1.35;
@@ -678,7 +624,7 @@ button {
 .sidebar-toggle small {
   display: block;
   margin-top: 0.15rem;
-  color: rgba(242, 237, 227, 0.55);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 0.72rem;
 }
 
@@ -691,10 +637,10 @@ button {
 .sidebar-details {
   margin-top: 0.5rem;
   padding: 0.5rem 0.6rem;
-  border: 1px solid rgba(242, 237, 227, 0.16);
-  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-sm);
   font-size: 0.78rem;
-  color: #c9c0b1;
+  color: var(--panel-muted);
 }
 
 .sidebar-details summary {
@@ -703,11 +649,11 @@ button {
   min-height: 2.75rem;
   cursor: pointer;
   font-weight: 500;
-  color: #c9c0b1;
+  color: var(--panel-muted);
 }
 
 .sidebar-details summary:hover {
-  color: #f2ebdf;
+  color: var(--panel-text);
 }
 
 .sidebar-form {
@@ -720,8 +666,8 @@ button {
   width: 100%;
   min-height: 2.75rem;
   padding: 0.4rem 0.5rem;
-  border: 1px solid rgba(242, 237, 227, 0.18);
-  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
   background: rgba(0, 0, 0, 0.22);
   color: var(--paper-2);
   font-family: var(--mono);
@@ -729,13 +675,13 @@ button {
 }
 
 .sidebar-form input::placeholder {
-  color: rgba(242, 237, 227, 0.4);
+  color: rgba(255, 255, 255, 0.52);
 }
 
 .sidebar-form input:focus {
   outline: none;
-  border-color: rgba(242, 237, 227, 0.45);
-  box-shadow: 0 0 0 2px rgba(242, 237, 227, 0.08);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-form .ghost-button.is-danger {
@@ -1048,7 +994,7 @@ button {
   gap: 0.6rem;
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--fill);
   font-size: 0.88rem;
 }
@@ -1081,7 +1027,7 @@ button {
 .empty {
   padding: 2rem 1.4rem;
   border: 1px dashed var(--rule-2);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--fill-weak);
   color: var(--ink-3);
   max-width: 46ch;
@@ -1113,7 +1059,7 @@ button {
   flex: 1 1 18rem;
   padding: 0.8rem 0.9rem;
   border: 1px solid var(--rule-2);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--paper-2);
   font-family: var(--display);
   font-size: 1.12rem;
@@ -1212,7 +1158,7 @@ button {
 .draft-form {
   padding: 1.15rem;
   border: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--fill-soft);
 }
 
@@ -1348,7 +1294,7 @@ button {
 .person {
   padding: 1.1rem;
   border: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--paper-2);
 }
 
@@ -1419,7 +1365,7 @@ button {
   gap: 1.5rem;
   padding: clamp(2.2rem, 6vw, 5.5rem);
   background: var(--panel);
-  background-image: radial-gradient(700px 500px at 20% 0%, #241d15, transparent 70%);
+  background-image: radial-gradient(700px 500px at 20% 0%, var(--rail-2), transparent 70%);
   color: var(--panel-text);
 }
 
@@ -1428,7 +1374,7 @@ button {
   font-size: 1.1rem;
   font-weight: 400;
   letter-spacing: 0.4em;
-  color: #f4ece0;
+  color: var(--panel-text);
 }
 
 .auth-story h1 {
@@ -1437,7 +1383,7 @@ button {
   font-weight: 400;
   line-height: 1.06;
   letter-spacing: -0.028em;
-  color: #f7f0e4;
+  color: var(--white-50);
 }
 
 .auth-story h1 em {
@@ -1450,7 +1396,7 @@ button {
   font-family: var(--reading);
   font-size: 1.02rem;
   line-height: 1.7;
-  color: #b9ae9c;
+  color: var(--slate-300);
 }
 
 .story-points {
@@ -1466,7 +1412,7 @@ button {
   position: relative;
   padding-left: 1.15rem;
   font-size: 0.88rem;
-  color: #9c9282;
+  color: var(--slate-300);
 }
 
 .story-points li::before {
@@ -1651,7 +1597,7 @@ button {
   width: 9.5rem;
   height: 9.5rem;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--paper-2);
   /* the QR is drawn on cream already; the padding keeps the quiet zone clean */
   padding: 4px;
@@ -1729,7 +1675,7 @@ button {
   gap: 0.15rem;
   padding: 1.05rem 1.15rem;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--paper-2);
 }
 
@@ -1770,7 +1716,7 @@ button {
   gap: 0.4rem;
   padding: 1.1rem;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--paper-2);
 }
 
@@ -1808,7 +1754,7 @@ button {
   border-collapse: collapse;
   background: var(--paper-2);
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   font-size: 0.88rem;
 }
@@ -2221,9 +2167,9 @@ h3 {
 .echo-mark {
   display: block;
   flex: none;
-  --mark-tile-hi: var(--leather);
-  --mark-tile-lo: var(--leather-deep);
-  --mark-ink: #fbf7f0;
+  --mark-tile-hi: var(--violet-500);
+  --mark-tile-lo: var(--violet-600);
+  --mark-ink: var(--white-50);
 }
 
 /* the hairline press frame: reads as a bookplate at 40px, vanishes at 16px */
@@ -2302,11 +2248,16 @@ h3 {
 .notify-block .sidebar-note {
   display: block;
   margin-top: 0.1rem;
-  color: rgba(242, 237, 227, 0.62);
+  color: var(--text-muted);
+}
+
+/* on the rail the same words sit on navy, not on paper */
+.sidebar .notify-block .sidebar-note {
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .notify-block .notify-error {
-  color: #e6a08c;
+  color: var(--danger);
 }
 
 .notify-test {
@@ -2411,7 +2362,7 @@ button.primary-button,
 button.ghost-button {
   min-height: 3rem;
   padding: 0.8rem 1.3rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border-width: 2px;
   font-size: 1.02rem;
   letter-spacing: 0.005em;
@@ -2420,7 +2371,7 @@ button.ghost-button {
 .primary-button {
   background: var(--leather);
   border-color: var(--leather-mark);
-  color: #ffffff;
+  color: var(--on-brand);
 }
 
 .primary-button:hover:not(:disabled) {
@@ -2451,7 +2402,7 @@ button.ghost-button {
   min-height: 2.75rem;
   padding: 0.5rem 1rem;
   border-width: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: 0.96rem;
 }
 
@@ -2487,7 +2438,7 @@ summary:focus-visible {
   min-height: 3.1rem;
   padding: 0.8rem 0.9rem;
   border: 2px solid var(--rule-2);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--paper-2);
   color: var(--ink);
   font-family: var(--sans);
@@ -2532,7 +2483,7 @@ summary:focus-visible {
 .nav-item {
   grid-template-columns: 2.1rem minmax(0, 1fr);
   padding: 0.65rem 0.6rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   row-gap: 0.1rem;
 }
 
@@ -2552,7 +2503,7 @@ summary:focus-visible {
 }
 
 .nav-item.is-active .nav-hint {
-  color: #e8eef8;
+  color: var(--on-brand);
 }
 
 .nav-icon {
@@ -2574,7 +2525,7 @@ summary:focus-visible {
   padding: 0.7rem;
   border-width: 2px;
   border-color: rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -2587,9 +2538,9 @@ summary:focus-visible {
 .sidebar .ghost-button {
   min-height: 2.9rem;
   border-color: rgba(255, 255, 255, 0.28);
-  color: #ffffff;
+  color: var(--on-brand);
   font-size: 0.95rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .sidebar-note {
@@ -2615,9 +2566,9 @@ summary:focus-visible {
 .text-size-buttons button {
   min-height: 2.75rem;
   border: 2px solid rgba(255, 255, 255, 0.28);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: transparent;
-  color: #ffffff;
+  color: var(--on-brand);
   font-family: var(--sans);
   cursor: pointer;
 }
@@ -2625,7 +2576,7 @@ summary:focus-visible {
 .text-size-buttons button[aria-pressed='true'] {
   background: var(--leather);
   border-color: var(--leather-mark);
-  color: #ffffff;
+  color: var(--on-brand);
 }
 
 /* --- cards, rows and lists ------------------------------------------------ */
@@ -2637,7 +2588,7 @@ summary:focus-visible {
 .person-card {
   border-width: 2px;
   border-color: var(--rule);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--paper-2);
 }
 
@@ -2645,9 +2596,9 @@ summary:focus-visible {
   font-size: 0.82rem;
   font-weight: 800;
   padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--leather);
-  color: #ffffff;
+  color: var(--on-brand);
 }
 
 /* --- the sign-in screen --------------------------------------------------- */
@@ -2710,7 +2661,7 @@ summary:focus-visible {
 }
 
 .nav-item.is-active .nav-icon {
-  color: #ffffff;
+  color: var(--on-brand);
 }
 
 .nav-item:hover {
@@ -2848,11 +2799,11 @@ summary:focus-visible {
 .sidebar .nav-item,
 .sidebar .nav-item:hover,
 .sidebar .nav-item:hover .nav-label {
-  color: #ffffff;
+  color: var(--on-brand);
 }
 
 .sidebar .nav-item:hover .nav-hint {
-  color: #ffffff;
+  color: var(--on-brand);
 }
 
 .sidebar .nav-item:hover {
@@ -2860,7 +2811,7 @@ summary:focus-visible {
 }
 
 .sidebar a.ghost-button:hover {
-  color: #ffffff;
+  color: var(--on-brand);
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.5);
 }
@@ -2956,8 +2907,8 @@ summary:focus-visible {
     gap: 0.16rem;
     min-height: 2.9rem;
     padding: 0.22rem 0.2rem;
-    border: 1px solid rgba(242, 237, 227, 0.22);
-    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: var(--radius-md);
     text-align: center;
   }
 
@@ -2990,8 +2941,8 @@ summary:focus-visible {
     gap: 0.4rem;
     min-height: 2.8rem;
     padding: 0 0.8rem;
-    border: 1px solid rgba(242, 237, 227, 0.3);
-    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-md);
     background: transparent;
     color: var(--panel-text);
     font: inherit;
@@ -3156,7 +3107,7 @@ summary:focus-visible {
     margin-bottom: 0.7rem;
     padding: 0 0.9rem;
     border: 1px solid var(--rule-2);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     background: var(--paper-2);
     color: var(--ink);
     font: inherit;
@@ -3232,7 +3183,7 @@ summary:focus-visible {
   align-items: center;
   min-height: 2.75rem;
   padding: 0 0.7rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--ink-2);
   font-size: 0.95rem;
   text-decoration: none;
@@ -3416,7 +3367,7 @@ summary:focus-visible {
   gap: 0.15rem;
   padding: 0.85rem 1rem;
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--paper-2);
 }
 
@@ -3498,7 +3449,7 @@ summary:focus-visible {
 
 .faq details {
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--paper-2);
   padding: 0 0.95rem;
 }
@@ -3587,7 +3538,7 @@ summary:focus-visible {
   min-height: 2.75rem;
   padding: 0 0.85rem;
   border: 1px solid var(--rule-2);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--paper-2);
   color: var(--ink);
   font: inherit;
@@ -3743,7 +3694,7 @@ summary:focus-visible {
   padding: 1rem 1.2rem;
   border: 2px solid var(--rule);
   border-left: 5px solid var(--leather);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--paper-2);
 }
 
@@ -3788,7 +3739,7 @@ summary:focus-visible {
   gap: 0.15rem 1rem;
   padding: 0.85rem 0.6rem;
   border-bottom: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--ink);
   text-decoration: none;
 }
@@ -3829,7 +3780,7 @@ summary:focus-visible {
   display: grid;
   overflow: hidden;
   border: 2px solid var(--rule);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--paper-2);
 }
 
@@ -3916,7 +3867,7 @@ summary:focus-visible {
   min-height: 2.8rem;
   padding: 0.3rem 0.7rem;
   border: 2px solid var(--rule-2);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--field);
   color: var(--ink);
   font: inherit;
@@ -3931,9 +3882,9 @@ summary:focus-visible {
   min-height: 2.8rem;
   padding: 0 0.9rem;
   border: 2px solid var(--leather);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--leather);
-  color: #ffffff;
+  color: var(--on-brand);
   font-family: var(--sans);
   font-weight: 700;
   cursor: pointer;
@@ -4064,7 +4015,7 @@ summary:focus-visible {
 .bar > i {
   display: block;
   height: 10px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--leather);
 }
 
@@ -4117,7 +4068,7 @@ summary:focus-visible {
   place-items: center;
   width: 3.4rem;
   height: 3.4rem;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--leather-wash);
   color: var(--leather-mark);
   font-family: var(--display);
@@ -4152,7 +4103,7 @@ summary:focus-visible {
 .page .text-size-buttons button[aria-pressed='true'] {
   background: var(--leather);
   border-color: var(--leather-mark);
-  color: #ffffff;
+  color: var(--on-brand);
 }
 
 .set-list {
@@ -4222,7 +4173,7 @@ summary:focus-visible {
   width: 3.1rem;
   height: 1.75rem;
   border: 2px solid var(--rule-2);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--paper-3);
   transition: background 140ms var(--ease), border-color 140ms var(--ease);
 }
@@ -4233,7 +4184,7 @@ summary:focus-visible {
   width: 1.05rem;
   height: 1.05rem;
   margin: 0.17rem;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--ink-4);
   transition: transform 140ms var(--ease), background 140ms var(--ease);
 }
@@ -4332,7 +4283,7 @@ summary:focus-visible {
   gap: 0.18rem;
   padding: 0.85rem 0.95rem;
   border: 1px solid var(--rule);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--paper-2);
   color: var(--ink);
   text-decoration: none;
@@ -4381,7 +4332,7 @@ summary:focus-visible {
   place-items: center;
   width: 1.6rem;
   height: 1.6rem;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--leather-wash);
   color: var(--leather-mark);
   font-family: var(--sans);
@@ -4423,7 +4374,7 @@ button.chip,
   min-height: 4rem;
   padding: 0.75rem 0.95rem;
   border: 2px solid var(--rule);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--paper-2);
   color: inherit;
   text-decoration: none;
@@ -4441,9 +4392,9 @@ button.chip,
   flex: none;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--leather);
-  color: #ffffff;
+  color: var(--on-brand);
   font-family: var(--mark);
   font-size: 1.35rem;
   line-height: 1;
@@ -4481,7 +4432,7 @@ button.chip,
 .menu-list {
   display: grid;
   border: 2px solid var(--rule);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--paper-2);
   overflow: hidden;
 }
@@ -4572,7 +4523,7 @@ button.chip,
   min-height: 3.1rem;
   padding: 0.45rem 0.6rem;
   border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.045);
   color: inherit;
   text-decoration: none;
@@ -4590,9 +4541,9 @@ button.chip,
   flex: none;
   width: 2.05rem;
   height: 2.05rem;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--leather);
-  color: #ffffff;
+  color: var(--on-brand);
   font-family: var(--mark);
   font-size: 1.15rem;
   line-height: 1;
@@ -4666,20 +4617,20 @@ body {
 .filter,
 .inline-form input,
 .inline-form select {
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .primary-button,
 .ghost-button,
 .danger-button {
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   font-size: 0.78rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .chip {
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .eyebrow {
@@ -4722,7 +4673,7 @@ body {
 }
 
 .nav-item.is-active .nav-hint {
-  color: #3b3423;
+  color: var(--on-brand);
 }
 
 .foot-monogram,
@@ -4817,7 +4768,7 @@ body {
   justify-content: space-between;
   padding: 0.7rem 0.75rem;
   border: 1px solid var(--rule);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--paper-2);
 }
 
@@ -4863,7 +4814,7 @@ body {
   min-height: 2.75rem;
   padding: 0.5rem 0.7rem;
   border: 1px solid var(--rule-2);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--field);
   color: var(--ink);
 }
